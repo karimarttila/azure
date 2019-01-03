@@ -7,7 +7,7 @@ terraform {
   backend "azurerm" {
     storage_account_name  = "kariaksstorage"
     container_name        = "dev-kari-aks-terraform-container"
-    key                   = "terraform.tfstate"
+    key                   = "dev-terraform.tfstate"
   }
 }
 

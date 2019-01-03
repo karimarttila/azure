@@ -13,14 +13,6 @@ In this new Simple Server Azure AKS project I created a Terraform deployment con
 So, the rationale of this project was mainly to learn how to use Terraform with Azure, how to create a Kubernetes deployment and use the Kubernetes deployment configuration with Minikube and Azure AKS. In the next project I create the deployment in the AWS side for EKS and Fargate.
 
  
-# Basic Azure Command Line Commands
-
-```bash
-az login                                       # Login to Azure.
-az account list --output table                 # List your Azure accounts.
-az account set -s "<choose-the-account>"       # Set the Azure account you want to use.
-
-```
 
 # Azure Configurations for Terraform
 
@@ -28,6 +20,18 @@ Read the following documents before starting to use Terraform with Azure:
 
 - [Install and configure Terraform to provision VMs and other infrastructure into Azure](https://docs.microsoft.com/en-us/azure/virtual-machines/linux/terraform-install-configure)
  - [Store Terraform state in Azure Storage](https://docs.microsoft.com/en-us/azure/terraform/terraform-backend)
+ - [Terraform Azure Provider](https://www.terraform.io/docs/providers/azurerm/)
+
+You need to download and install Azure and Terraform command line tools, of course.
+
+
+## Basic Azure Command Line Commands
+
+```bash
+az login                                       # Login to Azure.
+az account list --output table                 # List your Azure accounts.
+az account set -s "<choose-the-account>"       # Set the Azure account you want to use.
+```
  
 
 ## Create the Azure Storage Account for Terraform Backend
@@ -41,6 +45,7 @@ Use script [create-azure-storage-account.sh](https://github.com/karimarttila/azu
 
 NOTE: You might want to use prefix "dev-" with your container name if you are going to store several Terraform environment backends in the same Azure Storage account.
 
+
 ## Create Service Principal for Use with Terraform
 
 Create a service principal for Terraform:
@@ -49,10 +54,14 @@ Create a service principal for Terraform:
 az ad sp create-for-rbac --role="Contributor" --scopes="/subscriptions/SUBSCRIPTION_ID"
 ```
 
+Terraform uses this service principal when it creates resources in Azure.
+
+
 ## Create an Azure Environmental Variables Export Bash Script
 
 Create a bash script in which you export the environmental variables you need to work with this project. Store the file e.g. in ~/.azure (i.e. **DO NOT STORE THE FILE IN GIT** since you don't want these secrets to be in plain text in your Git repository!). Example:
 
+```bash
 #!/bin/bash
 
 echo "Setting environment variables for Simple Server Azure AKS Terraform project."
@@ -63,6 +72,7 @@ export ARM_SUBSCRIPTION_ID=<your-subscription-id>
 export ARM_CLIENT_ID=<app-id from service principal command result>
 export ARM_CLIENT_SECRET=<secret from Service Principal command result>
 export ARM_TENANT_ID=<tenant id from Service Principal command result>
+```
 
 (NOTE: Terraform requires the account key in environmental variable "ARM_ACCESS_KEY", I have used AZURE_STORAGE_KEY in some other scripts that's why I have the value twice).
 
