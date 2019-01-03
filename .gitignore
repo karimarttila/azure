@@ -17,5 +17,5 @@ personal-info/
 
 
 # Terraform state files.
-simple-server-aks/terraform/envs/dev/.terraform/
+.terraform/
 
