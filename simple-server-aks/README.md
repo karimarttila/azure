@@ -100,4 +100,10 @@ terraform apply   # => Apply changes
 ```
 
 
+# Azure AKS Terraform Configuration
 
+I followed these three documentation:
+
+- [Create a Kubernetes cluster with Azure Kubernetes Service and Terraform](https://docs.microsoft.com/en-us/azure/terraform/terraform-create-k8s-cluster-with-tf-and-aks)
+- [Terraform azurerm_kubernetes_cluster resource](https://www.terraform.io/docs/providers/azurerm/r/kubernetes_cluster.html)
+- [Creating a Kubernetes Cluster with AKS and Terraform](https://www.hashicorp.com/blog/kubernetes-cluster-with-aks-and-terraform)

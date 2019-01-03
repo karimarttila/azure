@@ -1,5 +1,5 @@
 
-resource "azurerm_resource_group" "main-resource-group" {
+resource "azurerm_resource_group" "resource-group" {
   name     = "${var.prefix}-${var.env}-${var.pg_name}"
   location = "${var.location}"
 

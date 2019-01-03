@@ -3,6 +3,10 @@
 
 ##### Terraform configuration #####
 
+provider "azurerm" {
+    version               = "~> 1.20"
+}
+
 terraform {
   backend "azurerm" {
     storage_account_name  = "kariaksstorage"
