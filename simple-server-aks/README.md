@@ -3,6 +3,19 @@
 
 # Table of Contents  <!-- omit in toc -->
 - [Introduction](#introduction)
+- [Azure Configurations for Terraform](#azure-configurations-for-terraform)
+  - [Basic Azure Command Line Commands](#basic-azure-command-line-commands)
+  - [Create the Azure Storage Account for Terraform Backend](#create-the-azure-storage-account-for-terraform-backend)
+  - [Create Service Principal for Use with Terraform](#create-service-principal-for-use-with-terraform)
+  - [NOT USED - SKIP THIS CHAPTER - Create Service Principal for Use with Terraform](#not-used---skip-this-chapter---create-service-principal-for-use-with-terraform)
+  - [Create an Azure Environmental Variables Export Bash Script](#create-an-azure-environmental-variables-export-bash-script)
+- [Using Terraform to Create the Azure AKS Infrastructure](#using-terraform-to-create-the-azure-aks-infrastructure)
+- [Azure AKS Terraform Configuration](#azure-aks-terraform-configuration)
+- [Some Azure Terraform Observations](#some-azure-terraform-observations)
+  - [Service Principal Hassle](#service-principal-hassle)
+
+
+
 
 # Introduction
 
@@ -188,6 +201,8 @@ I followed these three documentation:
 - [Create a Kubernetes cluster with Azure Kubernetes Service and Terraform](https://docs.microsoft.com/en-us/azure/terraform/terraform-create-k8s-cluster-with-tf-and-aks)
 - [Terraform azurerm_kubernetes_cluster resource](https://www.terraform.io/docs/providers/azurerm/r/kubernetes_cluster.html)
 - [Creating a Kubernetes Cluster with AKS and Terraform](https://www.hashicorp.com/blog/kubernetes-cluster-with-aks-and-terraform)
+
+The Azure AKS Terraform configuration is pretty straightforward. The only hassle was the Service Principal that AKS uses and that I would have liked to create as part of the Terraform configuration - couldn't do it (see related chapters in this document for the reasons). So, I configured AKS to use the same Service Principal that I created for using with terraform cli (as most AKS examples seem to do - after the Service Principal hassle I understand now why).
 
 
 # Some Azure Terraform Observations
