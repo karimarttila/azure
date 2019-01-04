@@ -11,6 +11,8 @@ module "main-resource-group" {
   pg_name                   = "main"
 }
 
+
+
 # AKS configuration.
 module "aks" {
   source          = "../aks"
@@ -20,7 +22,7 @@ module "aks" {
   rg_name         = "${module.main-resource-group.resource_group_name}"
   cluster_name    = "aks-demo"
   dns_prefix      = "aksdemo"
-  agent_count     = "3"
+  agent_count     = "2"
   agent_pool_name = "akspool"
   vm_size         = "Standard_A1"
   os_disk_size_gb = "30"

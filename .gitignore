@@ -19,3 +19,5 @@ personal-info/
 # Terraform state files.
 .terraform/
 
+# SSH files.
+.ssh/
