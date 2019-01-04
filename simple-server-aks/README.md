@@ -152,13 +152,13 @@ Create a bash script in which you export the environmental variables you need to
 #!/bin/bash
 
 echo "Setting environment variables for Simple Server Azure AKS Terraform project."
-export AZURE_STORAGE_ACCOUNT=<your-storage-account-name from storage account command result>
-export AZURE_STORAGE_KEY=<your-storage-account-key from storage account command result>
-export ARM_ACCESS_KEY=<your-storage-account-name from storage account command result>
-export ARM_SUBSCRIPTION_ID=<your-subscription-id>
-export ARM_CLIENT_ID=<app-id from service principal command result>
-export ARM_CLIENT_SECRET=<password from Service Principal command result>
-export ARM_TENANT_ID=<tenant id from Service Principal command result>
+export AZURE_STORAGE_ACCOUNT=your-storage-account-name from storage account command result
+export AZURE_STORAGE_KEY=your-storage-account-key from storage account command result
+export ARM_ACCESS_KEY=your-storage-account-name from storage account command result
+export ARM_SUBSCRIPTION_ID=your-subscription-id
+export ARM_CLIENT_ID=app-id from service principal command result
+export ARM_CLIENT_SECRET=password from Service Principal command result
+export ARM_TENANT_ID=tenant id from Service Principal command result
 # Since there was some hassle to create the service principal in
 # Terraform code, let's just use the service principal for AKS we
 # created using azure cli.
