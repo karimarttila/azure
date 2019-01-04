@@ -26,7 +26,6 @@ In this new Simple Server Azure AKS project I created a Terraform deployment con
 So, the rationale of this project was mainly to learn how to use Terraform with Azure, how to create a Kubernetes deployment and use the Kubernetes deployment configuration with Minikube and Azure AKS. In the next project I create the deployment in the AWS side for EKS and Fargate.
 
  
-
 # Azure Configurations for Terraform
 
 Read the following documents before starting to use Terraform with Azure:
@@ -165,7 +164,6 @@ export ARM_TENANT_ID=<tenant id from Service Principal command result>
 # created using azure cli.
 export TF_VAR_aks_client_id=${ARM_CLIENT_ID}
 export TF_VAR_aks_client_secret=${ARM_CLIENT_SECRET}
-
 ```
 
 (NOTE: Terraform requires the account key in environmental variable "ARM_ACCESS_KEY", I have used AZURE_STORAGE_KEY in some other scripts that's why I have the value twice).
