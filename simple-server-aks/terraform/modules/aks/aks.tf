@@ -1,10 +1,12 @@
 
-module "service_principal" {
-  source       = "../service-principal"
-  prefix       = "${var.prefix}"
-  env          = "${var.env}"
-  name         = "k8-service-principal"
-}
+# NOTE: Not used since the hassle with service principal rights
+# See README.md
+//module "service_principal" {
+//  source       = "../service-principal"
+//  prefix       = "${var.prefix}"
+//  env          = "${var.env}"
+//  name         = "aks-service-principal"
+//}
 
 
 
@@ -48,9 +50,15 @@ resource "azurerm_kubernetes_cluster" "aks" {
     os_disk_size_gb = "${var.os_disk_size_gb}"
   }
 
+  # NOTE: Not used since service principal hassle
+//  service_principal {
+//    client_id     = "${module.service_principal.service_principal_client_id}"
+//    client_secret = "${module.service_principal.service_principal_client_secret}"
+//  }
+  # Instead we use the service principal we created outside of terraform code.
   service_principal {
-    client_id     = "${module.service_principal.service_principal_client_id}"
-    client_secret = "${module.service_principal.service_principal_client_secret}"
+    client_id     = "${var.aks_client_id}"
+    client_secret = "${var.aks_client_secret}"
   }
 
 
@@ -59,12 +67,4 @@ resource "azurerm_kubernetes_cluster" "aks" {
     Environment = "${var.prefix}-${var.env}"
     Terraform   = "true"
   }
-}
-
-output "client_certificate" {
-  value = "${azurerm_kubernetes_cluster.aks.kube_config.0.client_certificate}"
-}
-
-output "kube_config" {
-  value = "${azurerm_kubernetes_cluster.aks.kube_config_raw}"
 }

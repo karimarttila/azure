@@ -26,4 +26,6 @@ module "aks" {
   agent_pool_name = "akspool"
   vm_size         = "Standard_A1"
   os_disk_size_gb = "30"
+  aks_client_id     = "${var.aks_client_id}"
+  aks_client_secret = "${var.aks_client_secret}"
 }

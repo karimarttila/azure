@@ -147,6 +147,12 @@ export ARM_SUBSCRIPTION_ID=<your-subscription-id>
 export ARM_CLIENT_ID=<app-id from service principal command result>
 export ARM_CLIENT_SECRET=<password from Service Principal command result>
 export ARM_TENANT_ID=<tenant id from Service Principal command result>
+# Since there was some hassle to create the service principal in
+# Terraform code, let's just use the service principal for AKS we
+# created using azure cli.
+export TF_VAR_aks_client_id=${ARM_CLIENT_ID}
+export TF_VAR_aks_client_secret=${ARM_CLIENT_SECRET}
+
 ```
 
 (NOTE: Terraform requires the account key in environmental variable "ARM_ACCESS_KEY", I have used AZURE_STORAGE_KEY in some other scripts that's why I have the value twice).
