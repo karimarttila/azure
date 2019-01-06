@@ -15,8 +15,6 @@
   - [Service Principal Hassle](#service-principal-hassle)
 
 
-
-
 # Introduction
 
 This Simple Server Azure AKS project relates to my previous project [Azure Table Storage with Clojure](https://medium.com/@kari.marttila/azure-table-storage-with-clojure-12055e02985c) in which I implemented the Simple Server to use Azure Table Storage as the application database. The Simple Server Azure version is in my Github account: [Clojure Simple Server](https://github.com/karimarttila/clojure/tree/master/clj-ring-cljs-reagent-demo/simple-server).
@@ -169,17 +167,16 @@ export TF_VAR_aks_client_secret=${ARM_CLIENT_SECRET}
 (NOTE: Terraform requires the account key in environmental variable "ARM_ACCESS_KEY", I have used AZURE_STORAGE_KEY in some other scripts that's why I have the value twice).
 
 You can then source the file using bash command:
- 
- ```bash
+
+```bash
 source ~/.azure/your-bash-file.sh
 ```
 
 Just to remind myself that I created file with name "kari-aks-demo.sh" for this project. So, I source it like:
 
- ```bash
+```bash
 source ~/.azure/kari-aks-demo.sh
 ```
-
 
 # Using Terraform to Create the Azure AKS Infrastructure
 
@@ -190,7 +187,6 @@ terraform init    # => Initializes Terraform, gets modules...
 terraform plan    # => Shows the plan (what is going to be created...)
 terraform apply   # => Apply changes
 ```
-
 
 # Azure AKS Terraform Configuration
 
@@ -212,7 +208,4 @@ I first thought that it would be nice to create the Service Principal that AKS u
 I tried option 1 and created a service principal with owner role. Terraform apply command gave the same error when trying to create the service principal for AKS, damn.
 
 Then some googling. I found a way to provide option 2, i.e. a custom service principal definition: [Terraform and Multi Tenanted Environments](https://azurecitadel.com/automation/terraform/lab5/#advanced-service-principal-configuration). I tried these instructions but I finally noticed that I should have AD admin rights in our corporation AD that is linked to the Azure subscription that I'm using - didn't work. So, I had to fall back to option 3 and create the service principal for AKS outside terraform code and inject the service principal using environmental variables. Not cloud infra best practice but after this hassle I thought that I just need to move on.
-
-
-
 
