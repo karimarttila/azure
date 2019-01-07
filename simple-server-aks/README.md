@@ -6,13 +6,15 @@
 - [Azure Configurations for Terraform](#azure-configurations-for-terraform)
   - [Basic Azure Command Line Commands](#basic-azure-command-line-commands)
   - [Create the Azure Storage Account for Terraform Backend](#create-the-azure-storage-account-for-terraform-backend)
-  - [Create Service Principal for Use with Terraform](#create-service-principal-for-use-with-terraform)
-  - [NOT USED - SKIP THIS CHAPTER - Create Service Principal for Use with Terraform](#not-used---skip-this-chapter---create-service-principal-for-use-with-terraform)
+  - [Running Terraform with Your Own AZ Login vs Creating a Service Principal](#running-terraform-with-your-own-az-login-vs-creating-a-service-principal)
   - [Create an Azure Environmental Variables Export Bash Script](#create-an-azure-environmental-variables-export-bash-script)
 - [Using Terraform to Create the Azure AKS Infrastructure](#using-terraform-to-create-the-azure-aks-infrastructure)
 - [Azure AKS Terraform Configuration](#azure-aks-terraform-configuration)
 - [Some Azure Terraform Observations](#some-azure-terraform-observations)
   - [Service Principal Hassle](#service-principal-hassle)
+    - [NOT USED - Create Service Principal for Use with Terraform](#not-used---create-service-principal-for-use-with-terraform)
+    - [NOT USED - Create Service Principal for Use with Terraform](#not-used---create-service-principal-for-use-with-terraform-1)
+    - [NOT USED - Create an Azure Environmental Variables Export Bash Script](#not-used---create-an-azure-environmental-variables-export-bash-script)
 
 
 # Introduction
@@ -56,7 +58,82 @@ Use script [create-azure-storage-account.sh](https://github.com/karimarttila/azu
 NOTE: You might want to use prefix "dev-" with your container name if you are going to store several Terraform environment backends in the same Azure Storage account.
 
 
-## Create Service Principal for Use with Terraform 
+## Running Terraform with Your Own AZ Login vs Creating a Service Principal
+
+I spent quite a lot of time with this issue. You can read the whole story in the end of this README file in chapter "Service Principal Hassle". To make a long story short: AKS needs a Service principal and you have two possibilities to provide it:
+
+1. You can create an external Service principal and populate its id and secret via TF_ENV_VARIABLENAME to terraform. This solution works but is a bit ugly since the cloud infra best practice is to create all infra using the same configuration as code.
+2. You can use your own az login which has the right to create the necessary AD app and Service principal. 
+
+I'm using the solution #2 here so that I'm able to create all resources in the terraform configuration and not create the AKS Service principal outside terraform.
+
+
+## Create an Azure Environmental Variables Export Bash Script
+
+Create a bash script in which you export the environmental variables you need to work with this project. Store the file e.g. in ~/.azure (i.e. **DO NOT STORE THE FILE IN GIT** since you don't want these secrets to be in plain text in your Git repository!). Example:
+
+```bash
+#!/bin/bash
+echo "Setting environment variables for Simple Server Azure AKS Terraform project."
+export AZURE_STORAGE_ACCOUNT=your-storage-account-name from storage account command result
+export AZURE_STORAGE_KEY=your-storage-account-key from storage account command result
+export ARM_ACCESS_KEY=your-storage-account-name from storage account command result
+```
+
+NOTE: Terraform requires the account key in environmental variable "ARM_ACCESS_KEY", I have used AZURE_STORAGE_KEY in some other scripts that's why I have the value twice.
+
+You can then source the file using bash command:
+
+```bash
+source ~/.azure/your-bash-file.sh
+```
+
+Just to remind myself that I created file with name "kari-aks-demo.sh" for this project. So, I source it like:
+
+```bash
+source ~/.azure/kari-aks-demo.sh
+```
+
+# Using Terraform to Create the Azure AKS Infrastructure
+
+Go to terraform directory. Give commands:
+
+```bash
+terraform init    # => Initializes Terraform, gets modules...
+terraform plan    # => Shows the plan (what is going to be created...)
+terraform apply   # => Apply changes
+```
+
+**NOTE**: Terraform apply fails the first time with some AD issue. Most probably this is caused because some AD app or Service principal resource is not ready for AKS. Wait a couple of minutes and run terraform plan/apply again - the second time terraform should be able to create all of the rest AKS related resources succesfully. 
+
+
+# Azure AKS Terraform Configuration
+
+I followed these three documentation:
+
+- [Create a Kubernetes cluster with Azure Kubernetes Service and Terraform](https://docs.microsoft.com/en-us/azure/terraform/terraform-create-k8s-cluster-with-tf-and-aks)
+- [Terraform azurerm_kubernetes_cluster resource](https://www.terraform.io/docs/providers/azurerm/r/kubernetes_cluster.html)
+- [Creating a Kubernetes Cluster with AKS and Terraform](https://www.hashicorp.com/blog/kubernetes-cluster-with-aks-and-terraform)
+
+The Azure AKS Terraform configuration is pretty straightforward. The only hassle was the Service Principal that AKS uses and that I would have liked to create as part of the Terraform configuration - couldn't do it (see related chapters in this document for the reasons). So, I configured AKS to use the same Service Principal that I created for using with terraform cli (as most AKS examples seem to do - after the Service Principal hassle I understand now why).
+
+
+# Some Azure Terraform Observations
+
+## Service Principal Hassle
+
+I first thought that it would be nice to create the Service Principal that AKS uses in Terraform as well. I created a Terraform module for it ([service-principal](TODO)) but when running ```terraform apply``` I got error ```azurerm_azuread_application.application: graphrbac.ApplicationsClient#Create: ...Details=[{"odata.error":{"code":"Authorization_RequestDenied","message":{"lang":"en","value":"Insufficient privileges to complete the operation."}}}]``` I pretty soon realized that Terraform is running under the service principal I created earlier (see chapter "Create Service Principal for Use with Terraform") and there I assigned role "Contributor" for this principal. So, a contributor role can create Azure resources but it cannot create other roles. Therefore there are three solutions: 1. Create the service principal with role "owner" -> owner can create other roles. 2. Add some right to the service principal to create other roles. 3. Remove the service principal creation in Terraform code and use some existing service principal that has been created outside Terraform. Option 1. is a bit overkill. Option 3 is not elegant since you should be able to create all cloud resources in your cloud infra configuration and not have scripts here and there. Option 2 would be the optimal solution but it takes a bit time. 
+
+I tried option 1 and created a service principal with owner role. Terraform apply command gave the same error when trying to create the service principal for AKS, damn.
+
+Then some googling. I found a way to provide option 2, i.e. a custom service principal definition: [Terraform and Multi Tenanted Environments](https://azurecitadel.com/automation/terraform/lab5/#advanced-service-principal-configuration). I tried these instructions but I finally noticed that I should have AD admin rights in our corporation AD that is linked to the Azure subscription that I'm using - didn't work. So, I had to fall back to option 3 and create the service principal for AKS outside terraform code and inject the service principal using environmental variables. Not cloud infra best practice but after this hassle I thought that I just need to move on.
+
+I managed to create the AKS finally so that I just populated the same Service principal I used to run the terraform to the AKS. The commit is "Creating service principal outside terraform and injecting it in environmental variable - now terraform init/plan/apply work - created AKS cluster ok" if you want to try this version. I have saved the Service principal chapters for historical reasons below as subchapters of this chapter.
+
+Then I had a conversation with my colleague Julius Eerola regarding this issue and he said that he is running terraform with his own Azure user (see [Azure Provider: Authenticating using the Azure CLI](https://www.terraform.io/docs/providers/azurerm/auth/azure_cli.html)). I remembered earlier that I had also tried this but terraform apply had failed to some AD issue. Then I remembered that in some cases also in the AWS side terraform apply had failed the first time since the creation of resources were not right or the resource didn't have time to initialize before terraform tried to create the next resource. I removed the external Service Principal dependency and configured terraform to create the Service principal itself and AKS to use this Service principal. I destroyed previous AKS infra, removed the sourced bash export Service principal credentials and tried to run terraform init/plan/apply again. Once again there was some AD error: ```azurerm_kubernetes_cluster.aks: Error creating/updating Managed Kubernetes Cluster ... containerservice.ManagedClustersClient#CreateOrUpdate: Failure sending request: StatusCode=0 -- Original Error: Code="ServicePrincipalNotFound" Message="Service principal clientID: 0000000000000000000000 not found in Active Directory tenant 000000000000000000000000 , Please see https://aka.ms/acs-sp-help for more details."```. I waited a couple of minutes and tried to run terraform apply again - this time terraform created AKS and the creation was successful. So, the trick not to use external Service principal with Terraform is to run terraform apply twice (and wait a bit between commmands) :-)  . 
+
+
+### NOT USED - Create Service Principal for Use with Terraform 
 
 NOTE: Use this service principal if you want to inject the same service principal you are using with Terraform for AKS as well (as environmental variables). If you want more elegant solution, see next chapter.
 
@@ -69,7 +146,7 @@ az ad sp create-for-rbac --role="Contributor" --scopes="/subscriptions/SUBSCRIPT
 Terraform uses this service principal when it creates resources in Azure.
 
 
-## NOT USED - SKIP THIS CHAPTER - Create Service Principal for Use with Terraform
+### NOT USED - Create Service Principal for Use with Terraform
 
 I keep this chapter for historical reasons. I tried to create a custom Terraform Service Principal to be used with Terraform so that in terraform scripts I could be able to create other service principals (e.g. AKS needs one). Seemed to be pretty hard and I finally couldn't do this since I lack my corporation AD admin rights. 
 
@@ -141,14 +218,12 @@ This does not work since Application.ReadWrite.All requires admin rights for my 
 I left the Terraform SP and the right grant request - let's see if my corporation AD admin grants the right. If yes, I'll try to use this service principal with terraform. I saved this service principal in file "ss-aks-profile-custom-terraform.sh" (for my information if I need it later).
 
  
-
-## Create an Azure Environmental Variables Export Bash Script
+### NOT USED - Create an Azure Environmental Variables Export Bash Script
 
 Create a bash script in which you export the environmental variables you need to work with this project. Store the file e.g. in ~/.azure (i.e. **DO NOT STORE THE FILE IN GIT** since you don't want these secrets to be in plain text in your Git repository!). Example:
 
 ```bash
 #!/bin/bash
-
 echo "Setting environment variables for Simple Server Azure AKS Terraform project."
 export AZURE_STORAGE_ACCOUNT=your-storage-account-name from storage account command result
 export AZURE_STORAGE_KEY=your-storage-account-key from storage account command result
@@ -177,35 +252,3 @@ Just to remind myself that I created file with name "kari-aks-demo.sh" for this 
 ```bash
 source ~/.azure/kari-aks-demo.sh
 ```
-
-# Using Terraform to Create the Azure AKS Infrastructure
-
-Go to terraform directory. Give commands:
-
-```bash
-terraform init    # => Initializes Terraform, gets modules...
-terraform plan    # => Shows the plan (what is going to be created...)
-terraform apply   # => Apply changes
-```
-
-# Azure AKS Terraform Configuration
-
-I followed these three documentation:
-
-- [Create a Kubernetes cluster with Azure Kubernetes Service and Terraform](https://docs.microsoft.com/en-us/azure/terraform/terraform-create-k8s-cluster-with-tf-and-aks)
-- [Terraform azurerm_kubernetes_cluster resource](https://www.terraform.io/docs/providers/azurerm/r/kubernetes_cluster.html)
-- [Creating a Kubernetes Cluster with AKS and Terraform](https://www.hashicorp.com/blog/kubernetes-cluster-with-aks-and-terraform)
-
-The Azure AKS Terraform configuration is pretty straightforward. The only hassle was the Service Principal that AKS uses and that I would have liked to create as part of the Terraform configuration - couldn't do it (see related chapters in this document for the reasons). So, I configured AKS to use the same Service Principal that I created for using with terraform cli (as most AKS examples seem to do - after the Service Principal hassle I understand now why).
-
-
-# Some Azure Terraform Observations
-
-## Service Principal Hassle
-
-I first thought that it would be nice to create the Service Principal that AKS uses in Terraform as well. I created a Terraform module for it ([service-principal](TODO)) but when running ```terraform apply``` I got error ```azurerm_azuread_application.application: graphrbac.ApplicationsClient#Create: ...Details=[{"odata.error":{"code":"Authorization_RequestDenied","message":{"lang":"en","value":"Insufficient privileges to complete the operation."}}}]``` I pretty soon realized that Terraform is running under the service principal I created earlier (see chapter "Create Service Principal for Use with Terraform") and there I assigned role "Contributor" for this principal. So, a contributor role can create Azure resources but it cannot create other roles. Therefore there are three solutions: 1. Create the service principal with role "owner" -> owner can create other roles. 2. Add some right to the service principal to create other roles. 3. Remove the service principal creation in Terraform code and use some existing service principal that has been created outside Terraform. Option 1. is a bit overkill. Option 3 is not elegant since you should be able to create all cloud resources in your cloud infra configuration and not have scripts here and there. Option 2 would be the optimal solution but it takes a bit time. 
-
-I tried option 1 and created a service principal with owner role. Terraform apply command gave the same error when trying to create the service principal for AKS, damn.
-
-Then some googling. I found a way to provide option 2, i.e. a custom service principal definition: [Terraform and Multi Tenanted Environments](https://azurecitadel.com/automation/terraform/lab5/#advanced-service-principal-configuration). I tried these instructions but I finally noticed that I should have AD admin rights in our corporation AD that is linked to the Azure subscription that I'm using - didn't work. So, I had to fall back to option 3 and create the service principal for AKS outside terraform code and inject the service principal using environmental variables. Not cloud infra best practice but after this hassle I thought that I just need to move on.
-

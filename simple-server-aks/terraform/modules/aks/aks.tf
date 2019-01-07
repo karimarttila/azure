@@ -1,13 +1,10 @@
 
-# NOTE: Not used since the hassle with service principal rights
-# See README.md
-//module "service_principal" {
-//  source       = "../service-principal"
-//  prefix       = "${var.prefix}"
-//  env          = "${var.env}"
-//  name         = "aks-service-principal"
-//}
-
+module "service_principal" {
+  source       = "../service-principal"
+  prefix       = "${var.prefix}"
+  env          = "${var.env}"
+  name         = "aks-service-principal"
+}
 
 
 resource "tls_private_key" "ssh-key" {
@@ -50,15 +47,9 @@ resource "azurerm_kubernetes_cluster" "aks" {
     os_disk_size_gb = "${var.os_disk_size_gb}"
   }
 
-  # NOTE: Not used since service principal hassle
-//  service_principal {
-//    client_id     = "${module.service_principal.service_principal_client_id}"
-//    client_secret = "${module.service_principal.service_principal_client_secret}"
-//  }
-  # Instead we use the service principal we created outside of terraform code.
   service_principal {
-    client_id     = "${var.aks_client_id}"
-    client_secret = "${var.aks_client_secret}"
+    client_id     = "${module.service_principal.service_principal_client_id}"
+    client_secret = "${module.service_principal.service_principal_client_secret}"
   }
 
 
