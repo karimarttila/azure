@@ -8,4 +8,9 @@ output "kube_config" {
   value = "${azurerm_kubernetes_cluster.aks.kube_config_raw}"
 }
 
+output "kube_name" {
+  value = "${azurerm_kubernetes_cluster.aks.name}"
+}
+
+
 

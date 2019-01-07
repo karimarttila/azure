@@ -117,10 +117,15 @@ I followed these three documentation:
 
 The Azure AKS Terraform configuration is pretty straightforward. The only hassle was the Service Principal that AKS uses and that I would have liked to create as part of the Terraform configuration - couldn't do it (see related chapters in this document for the reasons). So, I configured AKS to use the same Service Principal that I created for using with terraform cli (as most AKS examples seem to do - after the Service Principal hassle I understand now why).
 
+
 # ACR - Azure Container Registry
 
 The terraform configuration also comprises the ACR - Azure Container Registry which is used for Docker images that the Kubernetes deployment running in AKS uses.
 
+
+## Pushing the Docker Images to ACR
+
+The Terraform configuration only creates the Cloud infra. We could automate pushing the Docker images to ACR but since the Docker images are not part of the cloud infra but part of the application layer I have documented this task in the Kubernetes repo: [Simple Server Kubernetes](https://github.com/karimarttila/kubernetes/tree/master/simple-server).
 
 
 # Some Azure Terraform Observations

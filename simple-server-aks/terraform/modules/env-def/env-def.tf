@@ -8,7 +8,7 @@ module "main-resource-group" {
   prefix                    = "${var.prefix}"
   env                       = "${var.env}"
   location                  = "${var.location}"
-  pg_name                   = "main"
+  rg_name                   = "main"
 }
 
 
@@ -23,6 +23,17 @@ module "acr" {
   acr_sku         = "Basic"
 }
 
+# Public ips.
+
+module "single-node-pip" {
+  source          = "../public-ip"
+  prefix          = "${var.prefix}"
+  env             = "${var.env}"
+  location        = "${var.location}"
+  rg_name         = "${module.main-resource-group.resource_group_name}"
+  pip_name        = "single-node"
+
+}
 
 # AKS configuration.
 module "aks" {
