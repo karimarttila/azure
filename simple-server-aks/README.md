@@ -127,6 +127,16 @@ The terraform configuration also comprises the ACR - Azure Container Registry wh
 
 The Terraform configuration only creates the Cloud infra. We could automate pushing the Docker images to ACR but since the Docker images are not part of the cloud infra but part of the application layer I have documented this task in the Kubernetes repo: [Simple Server Kubernetes](https://github.com/karimarttila/kubernetes/tree/master/simple-server).
 
+# Public IPs
+
+The Azure AKS Simple Server deployment needs one public ip per configuration (one for single-node configuration and one for azure table storage configuration). The public ip is needed for the Kubernetes Load balancer resource so that we can test the Kubernetes deployment and access Simple Server via the Kubernetes Load balancer over internet. The terraform configuration creates the two public ips as part of the whole cloud infra. You can query those ips using terraform, e.g.:
+
+```bash
+terraform output -module=env-def.single-node-pip  # => public_ip_address = PUBLIC-IP
+```
+
+... and populate those ips to Kubernetes deployment scripts.
+
 
 # Some Azure Terraform Observations
 
