@@ -24,16 +24,25 @@ module "acr" {
 }
 
 # Public ips.
-
+# IP for Singe-node version of Simple Server.
 module "single-node-pip" {
   source          = "../public-ip"
   prefix          = "${var.prefix}"
   env             = "${var.env}"
   location        = "${var.location}"
   rg_name         = "${module.main-resource-group.resource_group_name}"
-  pip_name        = "single-node"
-
+  pip_name        = "single-node-pip"
 }
+# IP for Azure Table Storage version of Simple Server.
+module "table-storage-pip" {
+  source          = "../public-ip"
+  prefix          = "${var.prefix}"
+  env             = "${var.env}"
+  location        = "${var.location}"
+  rg_name         = "${module.main-resource-group.resource_group_name}"
+  pip_name        = "table-storage-pip"
+}
+
 
 # AKS configuration.
 module "aks" {
