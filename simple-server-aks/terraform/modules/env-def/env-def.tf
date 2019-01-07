@@ -12,6 +12,17 @@ module "main-resource-group" {
 }
 
 
+# ACR registry configuration.
+module "acr" {
+  source          = "../acr"
+  prefix          = "${var.prefix}"
+  env             = "${var.env}"
+  location        = "${var.location}"
+  rg_name         = "${module.main-resource-group.resource_group_name}"
+  acr_name        = "acrdemo"
+  acr_sku         = "Basic"
+}
+
 
 # AKS configuration.
 module "aks" {
