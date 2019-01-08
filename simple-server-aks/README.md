@@ -9,7 +9,12 @@
   - [Running Terraform with Your Own AZ Login vs Creating a Service Principal](#running-terraform-with-your-own-az-login-vs-creating-a-service-principal)
   - [Create an Azure Environmental Variables Export Bash Script](#create-an-azure-environmental-variables-export-bash-script)
 - [Using Terraform to Create the Azure AKS Infrastructure](#using-terraform-to-create-the-azure-aks-infrastructure)
-- [Azure AKS Terraform Configuration](#azure-aks-terraform-configuration)
+- [Azure Terraform Configuration](#azure-terraform-configuration)
+  - [AKS - Azure Kubernetes Service](#aks---azure-kubernetes-service)
+  - [ACR - Azure Container Registry](#acr---azure-container-registry)
+    - [Pushing the Docker Images to ACR](#pushing-the-docker-images-to-acr)
+  - [Public IPs](#public-ips)
+  - [Role Assignment](#role-assignment)
 - [Some Azure Terraform Observations](#some-azure-terraform-observations)
   - [Service Principal Hassle](#service-principal-hassle)
     - [NOT USED - Create Service Principal for Use with Terraform](#not-used---create-service-principal-for-use-with-terraform)
@@ -106,8 +111,9 @@ terraform apply   # => Apply changes
 
 **NOTE**: Terraform apply fails the first time with some AD issue. Most probably this is caused because some AD app or Service principal resource is not ready for AKS. Wait a couple of minutes and run terraform plan/apply again - the second time terraform should be able to create all of the rest AKS related resources succesfully. 
 
+# Azure Terraform Configuration
 
-# Azure AKS Terraform Configuration
+## AKS - Azure Kubernetes Service
 
 I followed these three documentation:
 
@@ -118,16 +124,16 @@ I followed these three documentation:
 The Azure AKS Terraform configuration is pretty straightforward. The only hassle was the Service Principal that AKS uses and that I would have liked to create as part of the Terraform configuration - couldn't do it (see related chapters in this document for the reasons). So, I configured AKS to use the same Service Principal that I created for using with terraform cli (as most AKS examples seem to do - after the Service Principal hassle I understand now why).
 
 
-# ACR - Azure Container Registry
+## ACR - Azure Container Registry
 
 The terraform configuration also comprises the ACR - Azure Container Registry which is used for Docker images that the Kubernetes deployment running in AKS uses.
 
 
-## Pushing the Docker Images to ACR
+### Pushing the Docker Images to ACR
 
 The Terraform configuration only creates the Cloud infra. We could automate pushing the Docker images to ACR but since the Docker images are not part of the cloud infra but part of the application layer I have documented this task in the Kubernetes repo: [Simple Server Kubernetes](https://github.com/karimarttila/kubernetes/tree/master/simple-server).
 
-# Public IPs
+## Public IPs
 
 The Azure AKS Simple Server deployment needs one public ip per configuration (one for single-node configuration and one for azure table storage configuration). The public ip is needed for the Kubernetes Load balancer resource so that we can test the Kubernetes deployment and access Simple Server via the Kubernetes Load balancer over internet. The terraform configuration creates the two public ips as part of the whole cloud infra. You can query those ips using terraform, e.g.:
 
@@ -136,6 +142,10 @@ terraform output -module=env-def.single-node-pip  # => public_ip_address = PUBLI
 ```
 
 ... and populate those ips to Kubernetes deployment scripts.
+
+## Role Assignment
+
+This is part of the configuration that I realized I had forgotten from the original setup. We need to give AKS's Service principal "Reader" role for accessing ACR or Kubernetes deployment fails.
 
 
 # Some Azure Terraform Observations
