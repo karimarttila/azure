@@ -1,12 +1,4 @@
 
-module "service_principal" {
-  source       = "../service-principal"
-  prefix       = "${var.prefix}"
-  env          = "${var.env}"
-  name         = "aks-service-principal"
-}
-
-
 resource "tls_private_key" "ssh-key" {
   algorithm   = "RSA"
 }
@@ -24,7 +16,6 @@ resource "null_resource" "save-ssh-key" {
 EOF
   }
 }
-
 
 resource "azurerm_kubernetes_cluster" "aks" {
   name                = "${var.prefix}-${var.env}-${var.cluster_name}"
@@ -48,8 +39,8 @@ resource "azurerm_kubernetes_cluster" "aks" {
   }
 
   service_principal {
-    client_id     = "${module.service_principal.service_principal_client_id}"
-    client_secret = "${module.service_principal.service_principal_client_secret}"
+    client_id     = "${var.service_principal_client_id}"
+    client_secret = "${var.service_principal_client_secret}"
   }
 
 
