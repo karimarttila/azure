@@ -20,9 +20,12 @@
     - [NOT USED - Create Service Principal for Use with Terraform](#not-used---create-service-principal-for-use-with-terraform)
     - [NOT USED - Create Service Principal for Use with Terraform](#not-used---create-service-principal-for-use-with-terraform-1)
     - [NOT USED - Create an Azure Environmental Variables Export Bash Script](#not-used---create-an-azure-environmental-variables-export-bash-script)
+  - [The ACR Image Pull from AKS Hassle](#the-acr-image-pull-from-aks-hassle)
 
 
 # Introduction
+
+There is a blog post regarding this project: [Creating Azure Kubernetes Service (AKS) the Right Way](https://medium.com/@kari.marttila/creating-azure-kubernetes-service-aks-the-right-way-9b18c665a6fa).
 
 This Simple Server Azure AKS project relates to my previous project [Azure Table Storage with Clojure](https://medium.com/@kari.marttila/azure-table-storage-with-clojure-12055e02985c) in which I implemented the Simple Server to use Azure Table Storage as the application database. The Simple Server Azure version is in my Github account: [Clojure Simple Server](https://github.com/karimarttila/clojure/tree/master/clj-ring-cljs-reagent-demo/simple-server).
 
@@ -121,12 +124,12 @@ I followed these three documentation:
 - [Terraform azurerm_kubernetes_cluster resource](https://www.terraform.io/docs/providers/azurerm/r/kubernetes_cluster.html)
 - [Creating a Kubernetes Cluster with AKS and Terraform](https://www.hashicorp.com/blog/kubernetes-cluster-with-aks-and-terraform)
 
-The Azure AKS Terraform configuration is pretty straightforward. The only hassle was the Service Principal that AKS uses and that I would have liked to create as part of the Terraform configuration - couldn't do it (see related chapters in this document for the reasons). So, I configured AKS to use the same Service Principal that I created for using with terraform cli (as most AKS examples seem to do - after the Service Principal hassle I understand now why).
+The Azure AKS Terraform configuration is pretty straightforward. There was quite a lot of hassle with the Service principal but finally I managed to create a Service principal in the Terraform code so that AKS uses this Service principal to create the nodes for the Kubernetes cluster and also the Terraform code injects this Service principal id to the Role assignment in the ACR side for giving rights for AKS to pull images from ACR.
 
 
 ## ACR - Azure Container Registry
 
-The terraform configuration also comprises the ACR - Azure Container Registry which is used for Docker images that the Kubernetes deployment running in AKS uses.
+The terraform configuration also comprises the ACR - Azure Container Registry which is used for Docker images that the Kubernetes deployment running in AKS uses. After the original blog post I tried to deploy the Simple Server single-node version Kubernetes deployment to the first version of this AKS and there was an authentication error in the pull image phase. I needed to fix this by creating a role assignment for acr scope for AKS Service principal.
 
 
 ### Pushing the Docker Images to ACR
@@ -143,16 +146,18 @@ terraform output -module=env-def.single-node-pip  # => public_ip_address = PUBLI
 
 ... and populate those ips to Kubernetes deployment scripts.
 
+**NOTE**: The public IPs must be put in to the resource group that AKS creates - not in the main resource group of the project. See the details in the public-ip terraform module.
+
 ## Role Assignment
 
-This is part of the configuration that I realized I had forgotten from the original setup. We need to give AKS's Service principal "Reader" role for accessing ACR or Kubernetes deployment fails.
+This is part of the configuration that I realized I had forgotten from the original setup. We need to give AKS's Service principal "Contributor" role for accessing ACR or Kubernetes deployment fails.
 
 
 # Some Azure Terraform Observations
 
 ## Service Principal Hassle
 
-I first thought that it would be nice to create the Service Principal that AKS uses in Terraform as well. I created a Terraform module for it ([service-principal](TODO)) but when running ```terraform apply``` I got error ```azurerm_azuread_application.application: graphrbac.ApplicationsClient#Create: ...Details=[{"odata.error":{"code":"Authorization_RequestDenied","message":{"lang":"en","value":"Insufficient privileges to complete the operation."}}}]``` I pretty soon realized that Terraform is running under the service principal I created earlier (see chapter "Create Service Principal for Use with Terraform") and there I assigned role "Contributor" for this principal. So, a contributor role can create Azure resources but it cannot create other roles. Therefore there are three solutions: 1. Create the service principal with role "owner" -> owner can create other roles. 2. Add some right to the service principal to create other roles. 3. Remove the service principal creation in Terraform code and use some existing service principal that has been created outside Terraform. Option 1. is a bit overkill. Option 3 is not elegant since you should be able to create all cloud resources in your cloud infra configuration and not have scripts here and there. Option 2 would be the optimal solution but it takes a bit time. 
+I first thought that it would be nice to create the Service Principal that AKS uses in Terraform as well. I created a Terraform module for it but when running ```terraform apply``` I got error ```azurerm_azuread_application.application: graphrbac.ApplicationsClient#Create: ...Details=[{"odata.error":{"code":"Authorization_RequestDenied","message":{"lang":"en","value":"Insufficient privileges to complete the operation."}}}]``` I pretty soon realized that Terraform is running under the service principal I created earlier (see chapter "Create Service Principal for Use with Terraform") and there I assigned role "Contributor" for this principal. So, a contributor role can create Azure resources but it cannot create other roles. Therefore there are three solutions: 1. Create the service principal with role "owner" -> owner can create other roles. 2. Add some right to the service principal to create other roles. 3. Remove the service principal creation in Terraform code and use some existing service principal that has been created outside Terraform. Option 1. is a bit overkill. Option 3 is not elegant since you should be able to create all cloud resources in your cloud infra configuration and not have scripts here and there. Option 2 would be the optimal solution but it takes a bit time. 
 
 I tried option 1 and created a service principal with owner role. Terraform apply command gave the same error when trying to create the service principal for AKS, damn.
 
@@ -282,3 +287,9 @@ Just to remind myself that I created file with name "kari-aks-demo.sh" for this 
 ```bash
 source ~/.azure/kari-aks-demo.sh
 ```
+
+## The ACR Image Pull from AKS Hassle
+
+I must admit now that I created the original version of the blog post of this project a bit too early :-) . After the original version of the blog post I tried to use the terraform version of that time to deploy the Simple Server single-node Kubernetes deployment to that AKS. Didn’t work. AKS didn’t have authorization to pull images from ACR. When examining the failed pod (using kubectl describe command…) I saw that the image pull was failed: “Failed to pull image … unauthorized: authentication required…”. It took me quite some time to figure out how to do this. In this kind of situation it is a good idea to create a working reference infra e.g. using Portal or command line tool. So, I created everything (AKS, ACR, Public IPs, Service principal, Role assignment etc.) manually step by step using az cli and deployed the Simple Server single-node version there and tested the deployment by curling the Simple Server API — the reference infra worked ok. Now I had a working reference infra for examining what was wrong with my Terraform configuration. I examined the created azure resources side by side (reference infra created by az cli and my terraform code). Finally I figured out the issues and was able to fix them. While spending some 8h with the terraform code I also quite extensively refactored it (e.g. put Service principal to aks module where it belongs, put role assignment to acr module where it belongs, introduced locals etc.).
+
+The lesson of the story: If terraform apply goes smoothly it doesn’t yet mean that the cloud infra is working properly — deploy what ever you are doing (Kubernetes, Docker, apps to VMs…) to the infra — if this part also works ok then you have a working cloud infra.
