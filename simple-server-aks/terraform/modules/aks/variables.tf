@@ -8,8 +8,6 @@ variable "agent_count" {}
 variable "agent_pool_name" {}
 variable "vm_size" {}
 variable "os_disk_size_gb" {}
-variable "service_principal_client_id" {}
-variable "service_principal_client_secret" {}
 
 
 

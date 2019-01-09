@@ -1,3 +1,16 @@
+locals {
+  my_name  = "${var.prefix}-${var.env}-${var.cluster_name}"
+  my_env   = "${var.prefix}-${var.env}"
+}
+
+# Service principal for AKS.
+module "aks-service-principal" {
+  source       = "../service-principal"
+  prefix       = "${var.prefix}"
+  env          = "${var.env}"
+  name         = "aks-service-principal"
+}
+
 
 resource "tls_private_key" "ssh-key" {
   algorithm   = "RSA"
@@ -18,15 +31,15 @@ EOF
 }
 
 resource "azurerm_kubernetes_cluster" "aks" {
-  name                = "${var.prefix}-${var.env}-${var.cluster_name}"
+  name                = "${local.my_name}"
   location            = "${var.location}"
   resource_group_name = "${var.rg_name}"
   dns_prefix          = "${var.dns_prefix}"
 
   linux_profile {
-    admin_username = "ubuntu"
+    admin_username = "ssaksadmin"
     ssh_key {
-      key_data = "${trimspace(tls_private_key.ssh-key.public_key_openssh)} ubuntu@azure.com"
+      key_data = "${trimspace(tls_private_key.ssh-key.public_key_openssh)} ssaksadmin@azure.com"
     }
   }
 
@@ -39,14 +52,13 @@ resource "azurerm_kubernetes_cluster" "aks" {
   }
 
   service_principal {
-    client_id     = "${var.service_principal_client_id}"
-    client_secret = "${var.service_principal_client_secret}"
+    client_id     = "${module.aks-service-principal.service_principal_client_id}"
+    client_secret = "${module.aks-service-principal.service_principal_client_secret}"
   }
 
-
   tags {
-    Name        = "${var.prefix}-${var.env}-${var.cluster_name}"
-    Environment = "${var.prefix}-${var.env}"
+    Name        = "${local.my_name}"
+    Environment = "${local.my_env}"
     Terraform   = "true"
   }
 }

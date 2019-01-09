@@ -19,47 +19,10 @@ module "acr" {
   location        = "${var.location}"
   rg_name         = "${module.main-resource-group.resource_group_name}"
   acr_name        = "acrdemo"
-  acr_sku         = "Basic"
+  acr_sku         = "standard"
+  ext_service_principal_id = "${module.aks.aks_service_principal_id}"
 }
 
-# Public ips.
-# IP for Singe-node version of Simple Server.
-module "single-node-pip" {
-  source          = "../public-ip"
-  prefix          = "${var.prefix}"
-  env             = "${var.env}"
-  location        = "${var.location}"
-  rg_name         = "${module.main-resource-group.resource_group_name}"
-  pip_name        = "single-node-pip"
-}
-# IP for Azure Table Storage version of Simple Server.
-module "table-storage-pip" {
-  source          = "../public-ip"
-  prefix          = "${var.prefix}"
-  env             = "${var.env}"
-  location        = "${var.location}"
-  rg_name         = "${module.main-resource-group.resource_group_name}"
-  pip_name        = "table-storage-pip"
-}
-
-# Service principal for AKS.
-module "service_principal" {
-  source       = "../service-principal"
-  prefix       = "${var.prefix}"
-  env          = "${var.env}"
-  name         = "aks-service-principal"
-}
-
-# Give Reader role of ACR scope for AKS's Service principal.
-# Without this kubectl deployment fails since AKS's Service principal do not have right to read ACR.
-module "acr-aks-role-assignment" {
-  source               = "../role-assignment"
-  prefix               = "${var.prefix}"
-  env                  = "${var.env}"
-  role                 = "Reader"
-  acr_id               = "${module.acr.acr_id}"
-  service_principal_id = "${module.service_principal.service_principal_id}"
-}
 
 # AKS configuration.
 module "aks" {
@@ -74,6 +37,24 @@ module "aks" {
   agent_pool_name = "akspool"
   vm_size         = "Standard_A1"
   os_disk_size_gb = "30"
-  service_principal_client_id     = "${module.service_principal.service_principal_client_id}"
-  service_principal_client_secret = "${module.service_principal.service_principal_client_secret}"
+}
+
+# Public ips.
+# IP for Singe-node version of Simple Server.
+module "single-node-pip" {
+  source          = "../public-ip"
+  prefix          = "${var.prefix}"
+  env             = "${var.env}"
+  location        = "${var.location}"
+  rg_name         = "${module.aks.aks_resource_group_name}"
+  pip_name        = "single-node-pip"
+}
+# IP for Azure Table Storage version of Simple Server.
+module "table-storage-pip" {
+  source          = "../public-ip"
+  prefix          = "${var.prefix}"
+  env             = "${var.env}"
+  location        = "${var.location}"
+  rg_name         = "${module.aks.aks_resource_group_name}"
+  pip_name        = "table-storage-pip"
 }

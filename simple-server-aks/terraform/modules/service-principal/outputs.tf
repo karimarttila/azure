@@ -9,5 +9,6 @@ output "service_principal_client_id" {
 
 output "service_principal_client_secret" {
   sensitive = true
-  value     = "${random_string.service-principal-password.result}"
+  value     = "${random_string.service-principal-random-password.result}"
 }
+
