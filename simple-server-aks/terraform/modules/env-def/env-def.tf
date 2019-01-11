@@ -58,3 +58,18 @@ module "table-storage-pip" {
   rg_name         = "${module.aks.aks_resource_group_name}"
   pip_name        = "table-storage-pip"
 }
+
+# Storage account for Table Storage tables
+# for the Simple Server Table storage version application.
+module "app-storage-account" {
+  source          = "../storage-account"
+  prefix          = "${var.prefix}"
+  env             = "${var.env}"
+  # Simple Server tables.
+  name            = "sstables"
+  location        = "${var.location}"
+  rg_name         = "${module.main-resource-group.resource_group_name}"
+  account_tier    = "Standard"
+  account_replication_type = "LRS"
+}
+

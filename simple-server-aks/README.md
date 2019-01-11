@@ -150,7 +150,11 @@ terraform output -module=env-def.single-node-pip  # => public_ip_address = PUBLI
 
 ## Role Assignment
 
-This is part of the configuration that I realized I had forgotten from the original setup. We need to give AKS's Service principal "Contributor" role for accessing ACR or Kubernetes deployment fails.
+This is part of the configuration that I realized I had forgotten from the original setup. We need to give AKS's Service principal "Contributor" role for accessing ACR or Kubernetes deployment fails. I later on refactored this as part of the ACR module where it logically belongs (ACR gives permission for AKS to pull images). 
+
+## Storage Account for Application Tables
+
+I created a Storage account for hosting the application tables. Creating the actual tables is not part of the terraform infra but belongs to the application layer.
 
 
 # Some Azure Terraform Observations
