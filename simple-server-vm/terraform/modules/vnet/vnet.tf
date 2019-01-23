@@ -8,47 +8,62 @@ resource "azurerm_virtual_network" "vm-vnet" {
   location = "${var.location}"
   address_space = ["${var.address_space}"]
   resource_group_name = "${var.rg_name}"
-  dns_servers = "${var.dns_servers}"
-
-  subnet {
-    name = "${var.private_subnet_name}"
-    address_prefix = "${var.private_subnet_address_prefix}"
-    security_group = "${azurerm_application_security_group.private_subnet_sg.id}"
-  }
-
-  subnet {
-    name = "${var.public_mgmt_subnet_name}"
-    address_prefix = "${var.public_mgmt_subnet_address_prefix}"
-    security_group = "${azurerm_application_security_group.public_mgmt_subnet_sg.id}"
-  }
 
   tags {
-    Name = "${local.my_name}-vnet"
+    Name        = "${local.my_name}-vnet"
     Environment = "${local.my_env}"
-    Terraform = "true"
+    Terraform   = "true"
   }
 }
 
-resource "azurerm_application_security_group" "private_subnet_sg" {
-  name = "${local.my_name}-private-subnet-sg"
+resource "azurerm_subnet" "private_scaleset_subnet" {
+  name                 = "${local.my_name}-private-scaleset-subnet"
+  address_prefix       = "${var.private_subnet_address_prefix}"
+  resource_group_name  = "${var.rg_name}"
+  virtual_network_name = "${azurerm_virtual_network.vm-vnet.name}"
+}
+
+resource "azurerm_subnet" "public_mgmt_subnet" {
+  name                 = "${local.my_name}-public-mgmt-subnet"
+  address_prefix       = "${var.public_mgmt_subnet_address_prefix}"
+  resource_group_name  = "${var.rg_name}"
+  virtual_network_name = "${azurerm_virtual_network.vm-vnet.name}"
+}
+
+
+resource "azurerm_network_security_group" "private_scaleset_subnet_nw_sg" {
+  name = "${local.my_name}-private-scaleset-subnet-nw-sg"
   location = "${var.location}"
   resource_group_name = "${var.rg_name}"
 
   tags {
-    Name = "${local.my_name}-private-subnet-sg"
+    Name        = "${local.my_name}-private-scaleset-subnet-nw-sg"
     Environment = "${local.my_env}"
-    Terraform = "true"
+    Terraform   = "true"
   }
 }
 
-resource "azurerm_application_security_group" "public_mgmt_subnet_sg" {
-  name = "${local.my_name}-public-mgmt-subnet-sg"
+
+resource "azurerm_network_security_group" "public_mgmt_subnet_nw_sg" {
+  name = "${local.my_name}-public-mgmt-subnet-nw-sg"
   location = "${var.location}"
   resource_group_name = "${var.rg_name}"
 
   tags {
-    Name = "${local.my_name}-public-mgmt-subnet-sg"
+    Name        = "${local.my_name}-public-mgmt-subnet-nw-sg"
     Environment = "${local.my_env}"
-    Terraform = "true"
+    Terraform   = "true"
   }
+}
+
+
+resource "azurerm_subnet_network_security_group_association" "private_scaleset_subnet_assoc" {
+  subnet_id                 = "${azurerm_subnet.private_scaleset_subnet.id}"
+  network_security_group_id = "${azurerm_network_security_group.private_scaleset_subnet_nw_sg.id}"
+}
+
+
+resource "azurerm_subnet_network_security_group_association" "public_mgmt_subnet_assoc" {
+  subnet_id                 = "${azurerm_subnet.public_mgmt_subnet.id}"
+  network_security_group_id = "${azurerm_network_security_group.public_mgmt_subnet_nw_sg.id}"
 }

@@ -95,6 +95,8 @@ terraform apply   # => Apply changes
 
 TODO: Explain topology.
 
+![Simple Server VM Scaleset Network Topology](diagrams/azure-simple-server-vm-vnet-topology.png?raw=true "Simple Server VM Scaleset Network Topology")
+
 TODO: Topology picture here.
 
 ## Sclaleset

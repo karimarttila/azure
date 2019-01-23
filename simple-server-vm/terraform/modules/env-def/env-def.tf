@@ -8,8 +8,9 @@ module "main-resource-group" {
   prefix                    = "${var.prefix}"
   env                       = "${var.env}"
   location                  = "${var.location}"
-  rg_name                   = "main"
+  rg_name                   = "main-rg"
 }
+
 
 module "vnet" {
   source          = "../vnet"
@@ -17,5 +18,9 @@ module "vnet" {
   env             = "${var.env}"
   location        = "${var.location}"
   rg_name         = "${module.main-resource-group.resource_group_name}"
+
+  address_space                     = "${var.address_space}"
+  private_subnet_address_prefix     = "${var.private_subnet_address_prefix}"
+  public_mgmt_subnet_address_prefix = "${var.public_mgmt_subnet_address_prefix}"
 }
 

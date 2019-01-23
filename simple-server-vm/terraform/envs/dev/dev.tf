@@ -18,12 +18,24 @@ terraform {
   }
 }
 
+locals {
+  my_prefix   = "karissvmdemo1"
+  my_env      = "dev"
+  my_location = "westeurope"
+}
+
 
 # Here we inject our values to the environment definition module which creates all actual resources.
 module "env-def" {
   source   = "../../modules/env-def"
-  prefix   = "karivmdemo1"
-  env      = "dev"
-  location = "westeurope"
+  prefix   = "${local.my_prefix}"
+  env      = "${local.my_env}"
+  location = "${local.my_location}"
+  # For making different vnets and subnets in different environments.
+  # Here you define address space for dev environment.
+  address_space                     = "10.0.1.0/24"
+  private_subnet_address_prefix     = "10.0.1.0/26"
+  public_mgmt_subnet_address_prefix = "10.0.1.64/28"
+
 }
 
