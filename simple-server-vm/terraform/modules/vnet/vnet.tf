@@ -21,6 +21,8 @@ resource "azurerm_subnet" "private_scaleset_subnet" {
   address_prefix       = "${var.private_subnet_address_prefix}"
   resource_group_name  = "${var.rg_name}"
   virtual_network_name = "${azurerm_virtual_network.vm-vnet.name}"
+  # NOTE: This field will be depricated in terraform 2.0 but now required or nw-sg will be disassociated with every terraform apply.
+  network_security_group_id  = "${azurerm_network_security_group.private_scaleset_subnet_nw_sg.id}"
 }
 
 resource "azurerm_subnet" "public_mgmt_subnet" {
@@ -28,6 +30,9 @@ resource "azurerm_subnet" "public_mgmt_subnet" {
   address_prefix       = "${var.public_mgmt_subnet_address_prefix}"
   resource_group_name  = "${var.rg_name}"
   virtual_network_name = "${azurerm_virtual_network.vm-vnet.name}"
+  # NOTE: This field will be depricated in terraform 2.0 but now required or nw-sg will be disassociated with every terraform apply.
+  network_security_group_id  = "${azurerm_network_security_group.public_mgmt_subnet_nw_sg.id}"
+
 }
 
 
