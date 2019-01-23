@@ -3,6 +3,10 @@ locals {
   my_env   = "${var.prefix}-${var.env}"
 }
 
+# NOTE: In this demonstration the actual Tables were not created as part of Terraform
+# but using the scripts found in the Simple Server Clojure / azure-table-storage directory.
+# TODO: If you sometimes continue this demonstration create a table-storage module and create the tables there (see simple-server-vm project).
+
 resource "azurerm_storage_account" "storage-account" {
   name                     = "${local.my_name}"
   resource_group_name      = "${var.rg_name}"

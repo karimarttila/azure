@@ -91,16 +91,26 @@ terraform apply   # => Apply changes
 
 # Azure Terraform Configuration
 
-## VNET
+## Virtual Network Topology
 
-TODO: Explain topology.
+The virtual network topology is depicted in the diagram below.
 
 ![Simple Server VM Scaleset Network Topology](diagrams/azure-simple-server-vm-vnet-topology.png?raw=true "Simple Server VM Scaleset Network Topology")
 
+There is an Azure Virtual network which has two subnets. A public management subnet with a bastion host which accepts ssh connections only from certain IP numbers (administrators) and requires a ssh private key for the connection. Only from the bastion host the administrators are able to connect to virtual machines in the private subnet. The private subnet hosts the Azure Scale set which hosts identical Virtual machines in which we have provisioned OpenJDK11 and the Simple Server Clojure Table Storage version. 
 
+Clients are able to access the system only using the external load balancer. The external load balancer connects to the internal load balancer which distributes load to the virtual machines in the scale set. 
+
+The virtual machines use the Table storage no-sql database tables as data store. The tables are located in an Azure Storage account.
+  
 
 ## Scaleset
 
+TODO.
+
+## Table Storage Tables
+
+TODO.
 
 # Virtual Machine Image
 
