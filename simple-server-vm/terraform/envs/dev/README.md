@@ -25,5 +25,6 @@ source ~/.azure/<source-script.sh> as:
 E.g. in my environment I use:
 
 ```bash
-source  ~/.azure/kari-aks-demo.sh
+source ~/.azure/kari-ss-vm-demo.sh
 ```
+

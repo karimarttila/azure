@@ -37,3 +37,8 @@ az storage container create --name $CONTAINER_NAME --account-name $STORAGE_ACCOU
 echo "storage_account_name: $STORAGE_ACCOUNT_NAME"
 echo "container_name: $CONTAINER_NAME"
 echo "access_key: $ACCOUNT_KEY"
+echo "Add the access_key to your source file as:"
+echo "  export ARM_ACCESS_KEY=<access_key>"
+echo "And use the storage_account_name and container_name in dev.tf file"
+
+

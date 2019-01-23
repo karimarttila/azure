@@ -48,4 +48,4 @@ sed -i "s/REPLACE_SS_VM_TAG_NAME/$MY_SS_VM_IMAGE_NAME/" $MY_FINAL_DEPLOYMENT_FIL
 
 # Just comment these lines out when debugging the script.
 rm $MY_FINAL_DEPLOYMENT_FILENAME
-#packer build ss-azure-vm.json
+packer build ss-azure-vm.json
