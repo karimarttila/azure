@@ -1,4 +1,4 @@
-# Simple Server Azure VM / Scaleset Demonstration  <!-- omit in toc -->
+# Simple Server Azure VM / Scale set Demonstration  <!-- omit in toc -->
 
 
 # Table of Contents  <!-- omit in toc -->
@@ -108,7 +108,7 @@ Clients are able to access the system only using the external load balancer. The
 The virtual machines use the Table storage no-sql database tables as data store. The tables are located in an Azure Storage account.
   
 
-## Scaleset
+## Scale set
 
 TODO.
 
@@ -118,5 +118,9 @@ TODO.
 
 # Virtual Machine Image
 
-TODO: Packer...
+I used Packer and instruction [How to use Packer to create Linux virtual machine images in Azure](https://docs.microsoft.com/en-us/azure/virtual-machines/linux/build-image-with-packer) to create an Ubuntu 18 virtual image to Azure.
+
+**NOTE**: There is a but in Packer 1.3.3, you have to use Packer 1.3.2, see [Github comment](https://github.com/MicrosoftDocs/azure-docs/issues/21944#issuecomment-452597596).
+
+See [packer](TODO) directory for the scripts.
 
