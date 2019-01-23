@@ -14,6 +14,10 @@
 - [Virtual Machine Image](#virtual-machine-image)
 
 
+**NOTE: WORK IN PROGRESS!!!**
+I'll finalize the documentation once the actual exercise is done.
+
+
 # Introduction
 
 There is a blog post regarding this project: [TODO](https://medium.com/@kari.marttila/TODO).
