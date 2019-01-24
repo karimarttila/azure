@@ -24,3 +24,10 @@ module "vnet" {
   public_mgmt_subnet_address_prefix = "${var.public_mgmt_subnet_address_prefix}"
 }
 
+module "storage_tables" {
+  source          = "../storage-tables"
+  prefix          = "${var.prefix}"
+  env             = "${var.env}"
+  location        = "${var.location}"
+  rg_name         = "${module.main-resource-group.resource_group_name}"
+}

@@ -22,7 +22,7 @@ I'll finalize the documentation once the actual exercise is done.
 
 There is a blog post regarding this project: [TODO](https://medium.com/@kari.marttila/TODO).
 
-I created this Simple Server Azure VM / Scaleset to study how to create vnet, subnetss and related security (security groups), load balancers and how to create a golden image VM and deploy it to this Terraform project Scaleset.
+I created this Simple Server Azure VM / Scaleset to study how to create vnet, subnets and related security (security groups), load balancers and how to create a golden image VM and deploy it to this Terraform project Scaleset.
 
 I used my Simple Server Table Storage version (see [Azure Table Storage with Clojure](https://medium.com/@kari.marttila/azure-table-storage-with-clojure-12055e02985c)) as the VM image that is created using [Packer](TODO)
  
