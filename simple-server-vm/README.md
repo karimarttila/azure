@@ -118,7 +118,17 @@ TODO.
 
 # Virtual Machine Image
 
-I used Packer and instruction [How to use Packer to create Linux virtual machine images in Azure](https://docs.microsoft.com/en-us/azure/virtual-machines/linux/build-image-with-packer) to create an Ubuntu 18 virtual image to Azure.
+I considered using Packer and instruction [How to use Packer to create Linux virtual machine images in Azure](https://docs.microsoft.com/en-us/azure/virtual-machines/linux/build-image-with-packer) to create an Ubuntu 18 virtual image to Azure. My first idea was to install all needed software (OpenJDK...) using Packer and then upload the application tar.gz using Packer File provisioner and untar the file in the preliminary Packer VM which then Packer would convert into an Azure VM image which I could start using cloud-init script (to start the Simple Server). This turned out not to be an easy task. The main thing that really pissed me off with hassling these virtual images was how slow the development cycle was - creating the virtual image takes ....... a long time compared to creating a Docker image. And if the image building fails at the end of the process you have to start over and again wait ....... a long time. 
+
+For some reason I couldn't upload the Clojure application tar which is pretty big file, some 100MB (standalone distributable: Clojure library + embedded Tomcat...). Then I realized another solution. Why don't I use procedure instead:
+1. Create the base VM image using Packer (install OpenJDK etc. but don't upload the app.tar.gz).
+2. Upload the big app.tar.gz file to Azure Storage Blob.
+3. Boot up another VM using this base VM image (created in step #1) and download the app.tar.gz from Azure Storage Blog, untar the file, => and create another image from this VM instance!
+4. Use cloud-init script to start the actual VM from the image created in step #3. 
+
+Let's see if this procedure works. If not, then I think I just create a VM image by hand (use the VM image created in step #1, manually scp the app.tag.gz there, untar...), manually create a VM image from this instance and use this instance in the rest of this exercise using the VM image in Azure Scale set... so, the idea is not to get stuck in this VM building process but to continue to the Azure VM Scale set infra and let's consider that we figure out later on some clever way to automate the VM image building.
+
+   
 
 **NOTE**: There is a but in Packer 1.3.3, you have to use Packer 1.3.2, see [Github comment](https://github.com/MicrosoftDocs/azure-docs/issues/21944#issuecomment-452597596).
 
