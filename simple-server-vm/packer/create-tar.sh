@@ -12,5 +12,5 @@ cp install/start-server.sh tmp/.
 cd tmp
 tar -zcvf ../app.tar.gz *
 cd ..
-rm app.tar.gz
+
 
