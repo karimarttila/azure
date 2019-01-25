@@ -21,18 +21,45 @@
     "location": "West Europe",
     "vm_size": "Standard_DS2_v2"
   }],
-  "provisioners": [
-    {
+ "provisioners": [
+  {
     "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E sh '{{ .Path }}'",
     "inline": [
       "apt-get update",
       "apt-get upgrade -y",
-      "apt-get -y install emacs-nox",
-
+      "apt-get install emacs-nox -y",
+      "apt-get install default-jdk -y",
+      "apt-get install ansible -y",
+      "mkdir /my-app"
+    ],
+    "inline_shebang": "/bin/sh -x",
+    "type": "shell"
+  },
+  {
+      "type": "file",
+      "source": "./app.tar.gz",
+      "destination": "/my-app/app.tar.gz"
+  },
+  {
+    "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E sh '{{ .Path }}'",
+    "inline": [
+      "cp /my-app",
+      "tar -xvzf app.tar.gz"
+    ],
+    "inline_shebang": "/bin/sh -x",
+    "type": "shell"
+  },
+  {
+    "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E sh '{{ .Path }}'",
+    "inline": [
       "/usr/sbin/waagent -force -deprovision+user && export HISTSIZE=0 && sync"
     ],
     "inline_shebang": "/bin/sh -x",
     "type": "shell"
-    }
+  }
   ]
 }
+
+
+
+
