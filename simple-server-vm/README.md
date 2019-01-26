@@ -105,12 +105,15 @@ There is an **Azure Virtual network (vnet)** which has two subnets. A **public m
 
 Clients are able to access the system only using the **external load balancer**. The external load balancer connects to the **internal load balancer** which distributes load to the virtual machines in the scale set. 
 
-The virtual machines use the Table storage no-sql database tables as data store. The tables are located in an Azure Storage account.
+The virtual machines use the **Table storage** no-sql database tables as data store. The tables are located in an **Azure Storage account**.
 
 
 ## Scale set
 
 TODO.
+
+## Load Balancers
+
 
 ## Table Storage Tables
 
@@ -118,6 +121,8 @@ TODO.
 
 
 # Virtual Machine Image
+
+## Creating the Image
 
 I considered using Packer and instruction [How to use Packer to create Linux virtual machine images in Azure](https://docs.microsoft.com/en-us/azure/virtual-machines/linux/build-image-with-packer) to create an Ubuntu 18 virtual image to Azure. My first idea was to install all needed software (OpenJDK...) using Packer and then upload the application tar.gz using Packer File provisioner and untar the file in the preliminary Packer VM which then Packer would convert into an Azure VM image which I could start using cloud-init script (to start the Simple Server). This turned out not to be an easy task. The main thing that really pissed me off with hassling these virtual images was how slow the development cycle was - creating the virtual image takes ....... a long time compared to creating a Docker image. And if the image building fails at the end of the process you have to start over and again wait ....... a long time. 
 
@@ -205,8 +210,26 @@ But, yihaa! While writing this I finally managed to upload the actual binary app
 I started the VM, logged on to the machine, cd /my-app, started the script: './start-server.sh', watched logs flowing everything was nice. I then open the port 3045 for my machine in the private subnet into which I deployed the VM, and curled the app with the public ip of the VM: curl http://11.11.11.11:3045/info (changed again ip to ones): but, nothing happened. I investigated this a bit until I realized that the VM itself also had a network security group (NSG) attached to itself. I opened port 3045 to my machine also in this NSG, curled: yihaa! It worked! Damn, it was beautiful to see all APIs returning the right test data.
 
 
-
 **One final NOTE regarding Packer and Azure VM building**: There is a bug in Packer 1.3.3, you have to use Packer 1.3.2, see [Github comment](https://github.com/MicrosoftDocs/azure-docs/issues/21944#issuecomment-452597596).
 
 See [packer](https://github.com/karimarttila/azure/tree/master/simple-server-vm/packer) directory for the scripts I used for building the VM.
+
+
+## Creating a Virtual Machine from the Image with a Cloud-Init Script
+
+I provisioned into the image a default 'start-server.sh' script:
+
+```bash
+#!/bin/bash
+export SS_ENV="single-node"
+export MY_ENV="dev"
+export SIMPLESERVER_CONFIG_FILE="resources/simpleserver.properties"
+echo $SS_ENV
+echo $MY_ENV
+echo $SIMPLESERVER_CONFIG_FILE
+java -jar app.jar
+```
+
+This start script is just for testing purposes (no dependencies to real databases). The actual environment variables and server start command will be provided by a cloud-init as described in [Cloud-init support for virtual machines in Azure](https://docs.microsoft.com/en-us/azure/virtual-machines/linux/using-cloud-init). This way I can create only one image (which is pretty time consuming) and use this custom image to create a test VM (using single-node version, as in the example above), or in the cloud-init set real Azure Table storage connection string for using the Simple Server in the real Azure mode.
+
 
