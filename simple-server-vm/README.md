@@ -129,6 +129,36 @@ For some reason I couldn't upload the Clojure application tar which is pretty bi
 Let's see if this procedure works. If not, then I think I just create a VM image by hand (use the VM image created in step #1, manually scp the app.tag.gz there, untar...), manually create a VM image from this instance and use this instance in the rest of this exercise using the VM image in Azure Scale set... so, the idea is not to get stuck in this VM building process but to continue to the Azure VM Scale set infra and let's consider that we figure out later on some clever way to automate the VM image building.
 
    
+   
+
+```text
+./create-vm-image.sh karissvmdemo9tartest karissvmdemo1-dev-main-rg
+... a lot of stuff... when packer starts a temporary VM, starts provisioning etc.
+... finally Packer captures the image of the provisioned VM and starts to delete 
+... the temporary resource group with temporary VM and other related stuff.... 
+==> azure-arm: Capturing image ...
+==> azure-arm:  -> Compute ResourceGroupName : 'packer-Resource-Group-xrul56mhm9'
+...
+==> azure-arm: Deleting resource group ...
+==> azure-arm:  -> ResourceGroupName : 'packer-Resource-Group-xrul56mhm9'
+==> azure-arm: 
+==> azure-arm: The resource group was created by Packer, deleting ...
+==> azure-arm: Deleting the temporary OS disk ...
+==> azure-arm:  -> OS Disk : skipping, managed disk was used...
+==> azure-arm: Deleting the temporary Additional disk ...
+==> azure-arm:  -> Additional Disk : skipping, managed disk was used...
+Build 'azure-arm' finished.
+==> Builds finished. The artifacts of successful builds are:
+--> azure-arm: Azure.ResourceManagement.VMImage:
+OSType: Linux
+ManagedImageResourceGroupName: karissvmdemo1-dev-main-rg
+ManagedImageName: karissvmdemo9tartest-vm
+ManagedImageId: /subscriptions/111111111111111111/resourceGroups/karissvmdemo1-dev-main-rg/providers/Microsoft.Compute/images/karissvmdemo9tartest-vm
+ManagedImageLocation: westeurope
+```
+
+(Changed the subscription id to "1111111111111" in the listing above, of course).
+   
 
 **NOTE**: There is a but in Packer 1.3.3, you have to use Packer 1.3.2, see [Github comment](https://github.com/MicrosoftDocs/azure-docs/issues/21944#issuecomment-452597596).
 

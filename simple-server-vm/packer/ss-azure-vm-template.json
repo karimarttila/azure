@@ -29,8 +29,21 @@
         "apt-get upgrade -y",
         "apt-get install emacs-nox -y",
         "apt-get install default-jdk -y",
-        "apt-get install ansible -y",
-        "mkdir /my-app"
+        "apt-get install ansible -y"
+      ],
+      "inline_shebang": "/bin/sh -x",
+      "type": "shell"
+    },
+    {
+        "type": "file",
+        "source": "create-tar.sh",
+        "destination": "create-tar.sh"
+    },
+    {
+      "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E sh '{{ .Path }}'",
+      "inline": [
+        "mkdir /my-app",
+        "mv create-tar.sh /my-app/create-tar.sh"
       ],
       "inline_shebang": "/bin/sh -x",
       "type": "shell"
