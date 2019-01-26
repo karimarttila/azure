@@ -36,8 +36,9 @@ MY_SS_VM_IMAGE_NAME="${MY_SS_VM_PREFIX}-vm"
 
 echo "Using prefix: $MY_SS_VM_PREFIX"
 
+mkdir -p temp
 MY_ORIG_DEPLOYMENT_FILENAME="ss-azure-vm-template.json"
-MY_FINAL_DEPLOYMENT_FILENAME="tmp/ss-azure-vm-final.json"
+MY_FINAL_DEPLOYMENT_FILENAME="temp/ss-azure-vm-final.json"
 
 cp $MY_ORIG_DEPLOYMENT_FILENAME $MY_FINAL_DEPLOYMENT_FILENAME
 sed -i "s/REPLACE_SS_VM_CLIENT_ID/$SS_VM_CLIENT_ID/" $MY_FINAL_DEPLOYMENT_FILENAME
@@ -48,10 +49,10 @@ sed -i "s/REPLACE_SS_VM_RG_NAME/$MY_SS_VM_RG_NAME/" $MY_FINAL_DEPLOYMENT_FILENAM
 sed -i "s/REPLACE_SS_VM_IMAGE_NAME/$MY_SS_VM_IMAGE_NAME/" $MY_FINAL_DEPLOYMENT_FILENAME
 sed -i "s/REPLACE_SS_VM_TAG_NAME/$MY_SS_VM_IMAGE_NAME/" $MY_FINAL_DEPLOYMENT_FILENAME
 
-# TODO ./create-tar.sh
+./create-tar.sh
 
 # Just comment these lines out when debugging the script.
 packer build $MY_FINAL_DEPLOYMENT_FILENAME
 rm $MY_FINAL_DEPLOYMENT_FILENAME
 
-# TODO rm app.tar.gz
+rm app.tar.gz

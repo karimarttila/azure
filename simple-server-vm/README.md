@@ -101,12 +101,12 @@ The virtual network topology is depicted in the diagram below.
 
 ![Simple Server VM Scaleset Network Topology](diagrams/azure-simple-server-vm-vnet-topology.png?raw=true "Simple Server VM Scaleset Network Topology")
 
-There is an Azure Virtual network which has two subnets. A public management subnet with a bastion host which accepts ssh connections only from certain IP numbers (administrators) and requires a ssh private key for the connection. Only from the bastion host the administrators are able to connect to virtual machines in the private subnet. The private subnet hosts the Azure Scale set which hosts identical Virtual machines in which we have provisioned OpenJDK11 and the Simple Server Clojure Table Storage version. 
+There is an **Azure Virtual network (vnet)** which has two subnets. A **public management subnet** with a bastion host which accepts ssh connections only from certain IP numbers (administrators) and requires a ssh private key for the connection. Only from the bastion host the administrators are able to connect to virtual machines in the private subnet. The **private scaleset subnet** hosts the Azure Scale set which hosts identical Virtual machines in which we have provisioned OpenJDK11 and the Simple Server Clojure Table Storage version. The Azure Scale set uses the **custom VM image** in which I have provisioned OpenJDK10 and the Simple Server (see chapter "Virtual Machine Image").
 
-Clients are able to access the system only using the external load balancer. The external load balancer connects to the internal load balancer which distributes load to the virtual machines in the scale set. 
+Clients are able to access the system only using the **external load balancer**. The external load balancer connects to the **internal load balancer** which distributes load to the virtual machines in the scale set. 
 
 The virtual machines use the Table storage no-sql database tables as data store. The tables are located in an Azure Storage account.
-  
+
 
 ## Scale set
 
@@ -115,6 +115,7 @@ TODO.
 ## Table Storage Tables
 
 TODO.
+
 
 # Virtual Machine Image
 
@@ -128,8 +129,8 @@ For some reason I couldn't upload the Clojure application tar which is pretty bi
 
 Let's see if this procedure works. If not, then I think I just create a VM image by hand (use the VM image created in step #1, manually scp the app.tag.gz there, untar...), manually create a VM image from this instance and use this instance in the rest of this exercise using the VM image in Azure Scale set... so, the idea is not to get stuck in this VM building process but to continue to the Azure VM Scale set infra and let's consider that we figure out later on some clever way to automate the VM image building.
 
-   
-   
+Let's first demonstrate using Packer:
+
 
 ```text
 ./create-vm-image.sh karissvmdemo9tartest karissvmdemo1-dev-main-rg
@@ -158,9 +159,54 @@ ManagedImageLocation: westeurope
 ```
 
 (Changed the subscription id to "1111111111111" in the listing above, of course).
-   
 
-**NOTE**: There is a but in Packer 1.3.3, you have to use Packer 1.3.2, see [Github comment](https://github.com/MicrosoftDocs/azure-docs/issues/21944#issuecomment-452597596).
+Then you can create a Virtual Machine using this image:
 
-See [packer](TODO) directory for the scripts.
+```bash
+az vm create --resource-group karissvmdemo1-dev-main-rg --name start9-test1 --image karissvmdemo9tartest-vm --custom-data testing_init.sh --ssh-key-value @vm_id_rsa.pub --vnet-name karissvmdemo1-dev-vnet --subnet karissvmdemo1-dev-private-scaleset-subnet --admin-username ubuntu --location westeurope
+```
+
+First you have to generate ssh keys, inject the public key to the new VM as above.
+
+Open the ssh port (22) to this machine in the <prefix>-dev-private-scaleset-subnet's network security group (I didn't add this rule to the Terraform infra since my IP number is a bit sensitive information).
+
+You get a result:
+
+```json
+{
+  "fqdns": "",
+  "id": "/subscriptions/11111111111111/resourceGroups/karissvmdemo1-dev-main-rg/providers/Microsoft.Compute/virtualMachines/start10-test1",
+  "location": "westeurope",
+  "macAddress": "11-11-11-11-11-11",
+  "powerState": "VM running",
+  "privateIpAddress": "10.0.1.8",
+  "publicIpAddress": "11.11.11.11",
+  "resourceGroup": "karissvmdemo1-dev-main-rg",
+  "zones": ""
+}
+```
+
+(Changed all sensitive information using ones ("1").)
+
+Logon to the VM:
+```bash
+ssh -i vm_id_rsa ubuntu@11.11.11.11
+~$ java -version
+openjdk version "10.0.2" 2018-07-17
+OpenJDK Runtime Environment (build 10.0.2+13-Ubuntu-1ubuntu0.18.04.4)
+OpenJDK 64-Bit Server VM (build 10.0.2+13-Ubuntu-1ubuntu0.18.04.4, mixed mode)
+```
+
+(Use the real IP, not my dummy "11.11.11.11", of course.)
+Ok, so I managed to create at least a base image which has OpenJDK10, Emacs and Ansible. And if the app.tar.gz application binary is not uploading I can try my second option later (create another image from this base image - use Packer to boot a temporary VM from this base image, fetch the app.tar.gz from Azure Storage blob, provision the software (untar) and then Packer creates the final VM image with provisioned appliction which can be used to create the actual VMs for the Scale set.)
+
+But, yihaa! While writing this I finally managed to upload the actual binary app.tar.gz just using Packer in the base image! And upload was actually amazingly fast. I just had screwed the previous Packer configuration. I'll now push this Packer configuration to my Github.
+
+I started the VM, logged on to the machine, cd /my-app, started the script: './start-server.sh', watched logs flowing everything was nice. I then open the port 3045 for my machine in the private subnet into which I deployed the VM, and curled the app with the public ip of the VM: curl http://11.11.11.11:3045/info (changed again ip to ones): but, nothing happened. I investigated this a bit until I realized that the VM itself also had a network security group (NSG) attached to itself. I opened port 3045 to my machine also in this NSG, curled: yihaa! It worked! Damn, it was beautiful to see all APIs returning the right test data.
+
+
+
+**One final NOTE regarding Packer and Azure VM building**: There is a bug in Packer 1.3.3, you have to use Packer 1.3.2, see [Github comment](https://github.com/MicrosoftDocs/azure-docs/issues/21944#issuecomment-452597596).
+
+See [packer](https://github.com/karimarttila/azure/tree/master/simple-server-vm/packer) directory for the scripts I used for building the VM.
 

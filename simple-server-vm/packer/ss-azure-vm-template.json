@@ -36,14 +36,14 @@
     },
     {
         "type": "file",
-        "source": "create-tar.sh",
-        "destination": "create-tar.sh"
+        "source": "app.tar.gz",
+        "destination": "app.tar.gz"
     },
     {
       "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E sh '{{ .Path }}'",
       "inline": [
         "mkdir /my-app",
-        "mv create-tar.sh /my-app/create-tar.sh"
+        "tar -xvzf app.tar.gz --directory /my-app"
       ],
       "inline_shebang": "/bin/sh -x",
       "type": "shell"
