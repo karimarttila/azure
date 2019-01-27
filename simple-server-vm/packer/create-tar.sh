@@ -33,6 +33,7 @@ cp $SS_DIR/target/uberjar/simple-server-1.0-standalone.jar tmp/app.jar
 cp -r $SS_DIR/resources tmp/.
 echo "Copying start server scripts..."
 cp install/start-server-single-node-mode.sh tmp/.
+cp install/start-server.sh tmp/.
 create-table-storage-mode-file
 cd tmp
 echo "Tarring distributable..."

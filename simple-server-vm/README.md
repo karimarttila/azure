@@ -252,11 +252,29 @@ I googled this startup mechanism a bit and there are a few alternatives:
 - Bake the startup mechanism into the VM image using Ansible.
 - Cloud-init (as described in [Cloud-init support for virtual machines in Azure](https://docs.microsoft.com/en-us/azure/virtual-machines/linux/using-cloud-init)).
  
-Developing the Ansible script should be done in the created VM since if you test the Ansible script in the actual VM building phase the development cycle is way too long. Test the Ansible script first with the VM image created this far: Create new VM based on this VM image, try ansible until you get it right, and then integrate the Ansible script into the Packer script.  
+If you develop the **Ansible script** when creating the VM image the development cycle is way too long (since creating the VM image takes a lot time). A better process is this:
 
-Cloud-init would be nice if I could export the environment variables in the cloud-init script (e.g. SS_ENV=single-node or SS_ENV=azure-table-storage...). This way I could create only one image (which is pretty time consuming) and use this custom image to create a test VM (using single-node version, as in the example above), or in the cloud-init set real Azure Table storage connection string for using the Simple Server in the real Azure mode.
+1. Create a Linux server from the VM image.
+2. Create the application user and rc.local scripts etc. to start the application on boot using the application user.
+3. Try to boot the VM and see that the application starts.
+4. Create another VM for testing Ansible.
+5. In VM 2 create Ansible script that provisions the user and application as you did manually with VM 1. 
+6. Try to boot VM 2 and see that application starts.
+7. Integrate the ansible script to Packer process to create an image which has the user and application in rc.local.
+8. Create VM using this image - check that the application started.
+9. Try to re-boot the VM - check that the application started.
 
-Let's try the cloud-init solution first.
+**Cloud-init** would be nice if I could export the environment variables in the cloud-init script (e.g. SS_ENV=single-node or SS_ENV=azure-table-storage...). This way I could create only one image (which is pretty time consuming) and use this custom image to create a test VM (using single-node version, as in the example above), or in the cloud-init set real Azure Table storage connection string for using the Simple Server in the real Azure mode. But I somehow understood that you should mainly use cloud-init to provision stuff and not use it to start servers etc. 
+
+Actually this could be a nice way to do it:
+
+1. Use ansible to create the user and rc.local startup script.
+2. Use cloud-init to set the environment variables - should be done once in early boot process before rc.local.
+
+Let's try that first manually. Let's create a VM manually which starts the application. And then manually create an image of that VM. Then try to create a new VM on that image and inject the environment variables using cloud-init: try both single-node and azure-table-storage (remember to upload the test data to Table storage first).
+
+
+
 
 
 

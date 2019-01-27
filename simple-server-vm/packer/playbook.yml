@@ -1,0 +1,40 @@
+---
+- hosts: default
+  become: true
+  become_method: sudo
+  remote_user: ubuntu
+  vars:
+    app_name: simpleserver
+    app_dir: /my-app
+    app_script: start-server.sh
+    user_name: ssuser
+  tasks:
+
+  - name: setup java dns resolution time to live (ttl)
+    lineinfile:
+      dest: "/usr/lib/jvm/java-11-openjdk-amd64/conf/security/java.security"
+      line: "networkaddress.cache.ttl=15"
+
+  - name: create user for running the application
+    user:
+      name: "{{user_name}}"
+      system: yes
+      createhome: no
+      shell: /usr/sbin/nologin
+
+  - name: install app as an init.d service by create a symlink
+    file:
+      path: /etc/init.d/{{app_name}}
+      state: link
+      src: "{{app_dir}}/{{app_script}}"
+
+  - name: enable app service
+    service:
+      name: "{{app_name}}"
+      enabled: yes
+
+  handlers:
+    - name: restart application
+      service:
+        name: "{{app_name}}"
+        state: restarted
