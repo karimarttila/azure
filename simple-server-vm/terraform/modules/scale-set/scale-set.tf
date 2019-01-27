@@ -1,6 +1,7 @@
 locals {
-  my_name  = "${var.prefix}-${var.env}-${var.rg_name}"
-  my_env   = "${var.prefix}-${var.env}"
+  my_name       = "${var.prefix}-${var.env}-${var.rg_name}"
+  my_env        = "${var.prefix}-${var.env}"
+  my_admin_user_name = "ubuntu"
 }
 
 
@@ -67,6 +68,7 @@ data "azurerm_image" "scaleset_image_reference" {
   resource_group_name = "${var.rg_name}"
 }
 
+
 resource "azurerm_virtual_machine_scale_set" "scaleset" {
   name                = "${local.my_name}-scaleset"
   location            = "${var.location}"
@@ -99,14 +101,14 @@ resource "azurerm_virtual_machine_scale_set" "scaleset" {
 
   os_profile {
     computer_name_prefix = "${local.my_name}-scaleset-vm"
-    admin_username       = "ubuntu"
+    admin_username       = "${local.my_admin_user_name}"
   }
 
   os_profile_linux_config {
     disable_password_authentication = true
 
     ssh_keys {
-      path     = "/home/azureuser/.ssh/authorized_keys"
+      path     = "/home/${local.my_admin_user_name}/.ssh/authorized_keys"
       key_data = "${file("${var.vm_ssh_public_key_file}")}"
 
     }
