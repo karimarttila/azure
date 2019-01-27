@@ -27,6 +27,7 @@ locals {
   application_port       = "3045"
   # NOTE: The custom image must have been created by Packer previously.
   scaleset_image_name    = "karissvmdemo-v2-image-vm"
+  scaleset_capacity      = "2"
 }
 
 
@@ -44,5 +45,6 @@ module "env-def" {
   vm_ssh_public_key_file            = "${local.vm_ssh_public_key_file}"
   scaleset_image_name               = "${local.scaleset_image_name}"
   application_port                  = "${local.application_port}"
+  scaleset_capacity                 = "${local.scaleset_capacity}"
 }
 

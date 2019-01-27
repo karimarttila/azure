@@ -42,4 +42,5 @@ module "scale-set" {
   scaleset_image_name    = "${var.scaleset_image_name}"
   subnet_id              = "${module.vnet.private_scaleset_subnet_id}"
   vm_ssh_public_key_file = "${var.vm_ssh_public_key_file}"
+  scaleset_capacity      = "${var.scaleset_capacity}"
 }

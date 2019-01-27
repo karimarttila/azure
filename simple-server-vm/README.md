@@ -230,7 +230,7 @@ I started the VM, logged on to the machine, cd /my-app, started the script: './s
 See [packer](https://github.com/karimarttila/azure/tree/master/simple-server-vm/packer) directory for the scripts I used for building the VM.
 
 
-## Creating a Virtual Machine from the Image with a Cloud-Init Script
+## Starting Application on Boot
 
 I provisioned into the image a default 'start-server.sh' script:
 
@@ -245,6 +245,19 @@ echo $SIMPLESERVER_CONFIG_FILE
 java -jar app.jar
 ```
 
-This start script is just for testing purposes (no dependencies to real databases). The actual environment variables and server start command will be provided by a cloud-init as described in [Cloud-init support for virtual machines in Azure](https://docs.microsoft.com/en-us/azure/virtual-machines/linux/using-cloud-init). This way I can create only one image (which is pretty time consuming) and use this custom image to create a test VM (using single-node version, as in the example above), or in the cloud-init set real Azure Table storage connection string for using the Simple Server in the real Azure mode.
+This start script is just for testing purposes (no dependencies to real databases). The actual environment variables and server start command should be provided by some mechanism.
+
+I googled this startup mechanism a bit and there are a few alternatives:
+
+- Bake the startup mechanism into the VM image using Ansible.
+- Cloud-init (as described in [Cloud-init support for virtual machines in Azure](https://docs.microsoft.com/en-us/azure/virtual-machines/linux/using-cloud-init)).
+ 
+Developing the Ansible script should be done in the created VM since if you test the Ansible script in the actual VM building phase the development cycle is way too long. Test the Ansible script first with the VM image created this far: Create new VM based on this VM image, try ansible until you get it right, and then integrate the Ansible script into the Packer script.  
+
+Cloud-init would be nice if I could export the environment variables in the cloud-init script (e.g. SS_ENV=single-node or SS_ENV=azure-table-storage...). This way I could create only one image (which is pretty time consuming) and use this custom image to create a test VM (using single-node version, as in the example above), or in the cloud-init set real Azure Table storage connection string for using the Simple Server in the real Azure mode.
+
+Let's try the cloud-init solution first.
+
+
 
 
