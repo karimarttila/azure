@@ -4,3 +4,6 @@ variable "location" {}
 variable "address_space" {}
 variable "private_subnet_address_prefix" {}
 variable "public_mgmt_subnet_address_prefix" {}
+variable "vm_ssh_public_key_file" {}
+variable "application_port" {}
+variable "scaleset_image_name" {}

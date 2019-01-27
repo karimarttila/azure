@@ -110,7 +110,22 @@ The virtual machines use the **Table storage** no-sql database tables as data st
 
 ## Scale set
 
-TODO.
+I followed Microsoft documentation [Use Terraform to create an Azure virtual machine scale set](https://docs.microsoft.com/en-us/azure/terraform/terraform-create-vm-scaleset-network-disks-hcl) and [Use Terraform to create an Azure virtual machine scale set from a Packer custom image](https://docs.microsoft.com/en-us/azure/terraform/terraform-create-vm-scaleset-network-disks-using-packer-hcl). The code is in [scale-set](TODO) Terraform module.
+
+I define the environment dependent scaleset variables in the [dev.tf](TODO) file:
+
+```hcl-terraform
+locals {
+  ...
+  vm_ssh_public_key_file = "/mnt/edata/aw/kari/github/azure/simple-server-vm/personal-info/vm_id_rsa.pub"
+  application_port       = "3045"
+  # NOTE: The custom image must have been created by Packer previously.
+  scaleset_image_name    = "karissvmdemo-v2-image-vm"
+```
+
+So, here you should give the Virtual Machine image name that was previously created using Packer (see chapter "Virtual Machine Image").
+
+
 
 ## Load Balancers
 

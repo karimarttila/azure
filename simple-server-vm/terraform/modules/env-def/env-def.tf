@@ -31,3 +31,15 @@ module "storage_tables" {
   location        = "${var.location}"
   rg_name         = "${module.main-resource-group.resource_group_name}"
 }
+
+module "scale-set" {
+  source                 = "../scale-set"
+  prefix                 = "${var.prefix}"
+  env                    = "${var.env}"
+  location               = "${var.location}"
+  rg_name                = "${module.main-resource-group.resource_group_name}"
+  application_port       = "${var.application_port}"
+  scaleset_image_name    = "${var.scaleset_image_name}"
+  subnet_id              = "${module.vnet.private_scaleset_subnet_id}"
+  vm_ssh_public_key_file = "${var.vm_ssh_public_key_file}"
+}
