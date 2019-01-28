@@ -8,3 +8,4 @@ variable "vm_ssh_public_key_file" {}
 variable "application_port" {}
 variable "scaleset_image_name" {}
 variable "scaleset_capacity" {}
+variable "scaleset_vm_custom_data_file" {}

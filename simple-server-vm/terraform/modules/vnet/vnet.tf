@@ -72,3 +72,18 @@ resource "azurerm_subnet_network_security_group_association" "public_mgmt_subnet
   subnet_id                 = "${azurerm_subnet.public_mgmt_subnet.id}"
   network_security_group_id = "${azurerm_network_security_group.public_mgmt_subnet_nw_sg.id}"
 }
+
+
+resource "azurerm_network_security_rule" "private_scaleset_subnet_nw_sg" {
+  name = "${local.my_name}-private-scaleset-subnet-nw-sg-allow-http-3045-rule"
+  priority                    = 200
+  direction                   = "Inbound"
+  access                      = "Allow"
+  protocol                    = "Tcp"
+  source_port_range           = "*"
+  destination_port_range      = "3045"
+  source_address_prefix       = "*"
+  destination_address_prefix  = "${var.private_subnet_address_prefix}"
+  resource_group_name         = "${var.rg_name}"
+  network_security_group_name = "${azurerm_network_security_group.private_scaleset_subnet_nw_sg.name}"
+}

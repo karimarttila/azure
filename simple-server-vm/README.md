@@ -120,10 +120,14 @@ locals {
   vm_ssh_public_key_file = "/mnt/edata/aw/kari/github/azure/simple-server-vm/personal-info/vm_id_rsa.pub"
   application_port       = "3045"
   # NOTE: The custom image must have been created by Packer previously.
-  scaleset_image_name    = "karissvmdemo-v2-image-vm"
+  scaleset_image_name    = "karissvmdemo-v1-image-vm"
+  scaleset_capacity      = "2"
+  # This way you can inject the environment variables regarding Simple Server mode
+  # at the point we actually create the VM.
+  scaleset_vm_custom_data_file = "/mnt/edata/aw/kari/github/azure/simple-server-vm/packer/cloud-init-set-env-mode-single-node.sh"
 ```
 
-So, here you should give the Virtual Machine image name that was previously created using Packer (see chapter "Virtual Machine Image").
+So, here you should give the Virtual Machine image name that was previously created using Packer (see chapter "Virtual Machine Image") and also inject the custom data file which comprises the cloud-init configuration (see chapter "Starting Application on Boot").
 
 
 
@@ -136,6 +140,21 @@ TODO.
 
 
 # Virtual Machine Image
+
+## Service Principal for Creating Azure VM Images
+
+Use script:
+
+```bash
+az ad sp create-for-rbac --query "{ client_id: appId, client_secret: password, tenant_id: tenant }"
+# =>
+#  "client_id": "111111111111111",
+#  "client_secret": "1111111111111111111",
+#  "tenant_id": "ccccccccccccccccc"
+```
+
+You get the service principal credentials, copy-paste them to your ~/.azure/<environmen-settings.sh> to be sourced later.
+
 
 ## Creating the Image
 
@@ -273,9 +292,68 @@ Actually this could be a nice way to do it:
 
 Let's try that first manually. Let's create a VM manually which starts the application. And then manually create an image of that VM. Then try to create a new VM on that image and inject the environment variables using cloud-init: try both single-node and azure-table-storage (remember to upload the test data to Table storage first).
 
+Note regarding security. This is just an exercise so we can do the environment variables reading a bit more relaxed manner. But in real production system we should store the Azure Storage Account connection string in the Azure Key Vault and somehow authorize the VM to read the connection string from the Key Vault. Maybe I try this a bit later.
+
+I created two cloud-init scripts: 'cloud-init-set-env-mode-single-node.sh' and 'cloud-init-set-env-mode-azure-table-storage.sh'. The first one is in the packer directory, the second one is in my personal-data directory which is not part of this git repository (sensitive information - the Azure storage account connection string). In real production system we should read the connection string from the Azure Key Vault, of course, but this is an exercise and I wanted to focus on the VM and Scale set side, let's examine the Key vault in some following exercise.
+
+The script is pretty simple:
+
+```bash
+#!/bin/sh
+
+# The script to start the application.
+MY_APP_FILE=/my-app/my-start-server.sh
+printf "#!/bin/bash\n\n" >> $MY_APP_FILE
+printf "export SS_ENV=\"single-node\"\n" >> $MY_APP_FILE
+printf "export MY_ENV=\"dev\"\n" >> $MY_APP_FILE
+printf "export SIMPLESERVER_CONFIG_FILE=\"resources/simpleserver.properties\"\n\n" >> $MY_APP_FILE
+printf "java -jar app.jar\n\n" >> $MY_APP_FILE
+sudo chmod u+x $MY_APP_FILE
+
+# Create the simple server user to run the application.
+adduser ssuser --no-create-home --shell /usr/sbin/nologin --disabled-password --gecos ""
+# Change ownership of the application directory to ssuser.
+sudo chown -R ssuser:ssuser /my-app
+
+# Create the rc.local file to start the server.
+MY_RC_LOCAL=/etc/rc.local
+printf "#!/bin/bash\n\n" >> $MY_RC_LOCAL
+printf "cd /my-app;sudo -u ssuser ./my-start-server.sh\n\n" >> $MY_RC_LOCAL
+sudo chmod +x $MY_RC_LOCAL
+
+# Finally reboot to start the server (using rc.local) in the next boot.
+sudo reboot
+```
+
+So. First we create the application startup script and export the environment variables for this mode. Then we create a new ssuser to run the application, change ownership of the application directory to this user. Then we create a rc.local file in which we set the environment variables and start the application as the ssuser.
+
+Next testing to create a new VM and the cloud-init configures the application startup.
+
+```bash
+az vm create --resource-group karissvmdemo2-dev-main-rg --name karissvmdemo2-inittest-vm --image karissvmdemo-v1-image-vm --custom-data ../packer/cloud-init-set-env-mode-single-node.sh --ssh-key-value @vm_id_rsa.pub --vnet-name karissvmdemo2-dev-vnet --subnet karissvmdemo2-dev-private-scaleset-subnet --admin-username ubuntu --location westeurope
+```
+
+ssh to server and test that the application is running:
+```bash
+ps aux | grep java
+# => ssuser    ...  java -jar app.jar
+sudo systemctl status rc-local
+# => rc-local.service - /etc/rc.local Compatibility ... Active: activating (start) since Mon 2019-01-28 18:14:52 UTC; 27min ago
+...
+```
+
+Ok. We now have a mechanism to start the server in the mode we wish. 
+
+Let's next try this server in the Azure Scale set.
 
 
 
+
+# Miscellaneous
+
+## Azure VM Instance Metadata
+
+curl -H Metadata:true "http://169.254.169.254/metadata/instance?api-version=2017-08-01"
 
 
 

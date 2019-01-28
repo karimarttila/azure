@@ -102,6 +102,7 @@ resource "azurerm_virtual_machine_scale_set" "scaleset" {
   os_profile {
     computer_name_prefix = "${local.my_name}-scaleset-vm"
     admin_username       = "${local.my_admin_user_name}"
+    custom_data          = "${file("${var.scaleset_vm_custom_data_file}")}"
   }
 
   os_profile_linux_config {
