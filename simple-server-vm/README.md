@@ -251,7 +251,7 @@ See [packer](https://github.com/karimarttila/azure/tree/master/simple-server-vm/
 
 ## Starting Application on Boot
 
-I provisioned into the image a default 'start-server.sh' script:
+I provisioned into the image a default 'start-server.sh' script (actually not used, I found later a better way):
 
 ```bash
 #!/bin/bash
