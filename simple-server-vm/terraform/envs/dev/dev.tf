@@ -20,7 +20,7 @@ terraform {
 
 # These values are per environment.
 locals {
-  my_prefix              = "karissvmdemo2"
+  my_prefix              = "karissvmdemo3"
   my_env                 = "dev"
   my_location            = "westeurope"
   vm_ssh_public_key_file = "/mnt/edata/aw/kari/github/azure/simple-server-vm/personal-info/vm_id_rsa.pub"

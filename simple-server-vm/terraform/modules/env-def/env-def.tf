@@ -45,17 +45,17 @@ module "storage_tables" {
   storage_account_name = "${module.table_storage_account.storage_account_name}"
 }
 
-module "scale-set" {
-  source                       = "../scale-set"
-  prefix                       = "${var.prefix}"
-  env                          = "${var.env}"
-  location                     = "${var.location}"
-  rg_name                      = "${module.main-resource-group.resource_group_name}"
-  application_port             = "${var.application_port}"
-  scaleset_image_name          = "${var.scaleset_image_name}"
-  subnet_id                    = "${module.vnet.private_scaleset_subnet_id}"
-  vm_ssh_public_key_file       = "${var.vm_ssh_public_key_file}"
-  scaleset_capacity            = "${var.scaleset_capacity}"
-  scaleset_vm_custom_data_file = "${var.scaleset_vm_custom_data_file}"
-}
+//module "scale-set" {
+//  source                       = "../scale-set"
+//  prefix                       = "${var.prefix}"
+//  env                          = "${var.env}"
+//  location                     = "${var.location}"
+//  rg_name                      = "${module.main-resource-group.resource_group_name}"
+//  application_port             = "${var.application_port}"
+//  scaleset_image_name          = "${var.scaleset_image_name}"
+//  subnet_id                    = "${module.vnet.private_scaleset_subnet_id}"
+//  vm_ssh_public_key_file       = "${var.vm_ssh_public_key_file}"
+//  scaleset_capacity            = "${var.scaleset_capacity}"
+//  scaleset_vm_custom_data_file = "${var.scaleset_vm_custom_data_file}"
+//}
 

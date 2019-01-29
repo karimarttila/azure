@@ -28,8 +28,7 @@
         "apt-get update",
         "apt-get upgrade -y",
         "apt-get install emacs-nox -y",
-        "apt-get install default-jdk -y",
-        "apt-get install ansible -y"
+        "apt-get install default-jdk -y"
       ],
       "inline_shebang": "/bin/sh -x",
       "type": "shell"
