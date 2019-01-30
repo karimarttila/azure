@@ -1,6 +1,5 @@
 # Simple Server Azure VM / Scale set Demonstration  <!-- omit in toc -->
 
-
 # Table of Contents  <!-- omit in toc -->
 - [Introduction](#introduction)
 - [Azure Configurations for Terraform](#azure-configurations-for-terraform)
@@ -9,9 +8,18 @@
   - [Create an Azure Environmental Variables Export Bash Script](#create-an-azure-environmental-variables-export-bash-script)
 - [Using Terraform to Create the Azure AKS Infrastructure](#using-terraform-to-create-the-azure-aks-infrastructure)
 - [Azure Terraform Configuration](#azure-terraform-configuration)
-  - [VNET](#vnet)
-  - [Sclaleset](#sclaleset)
+  - [Virtual Network Topology](#virtual-network-topology)
+  - [Scale set](#scale-set)
+    - [Testing the Scale set](#testing-the-scale-set)
+  - [Storage Account](#storage-account)
+  - [Load Balancer](#load-balancer)
+  - [Table Storage Tables](#table-storage-tables)
 - [Virtual Machine Image](#virtual-machine-image)
+  - [Service Principal for Creating Azure VM Images](#service-principal-for-creating-azure-vm-images)
+  - [Creating the Image](#creating-the-image)
+  - [Starting Application on Boot](#starting-application-on-boot)
+- [Miscellaneous](#miscellaneous)
+  - [Azure VM Instance Metadata](#azure-vm-instance-metadata)
 
 
 **NOTE: WORK IN PROGRESS!!!**
@@ -132,15 +140,15 @@ locals {
 
 So, here you should give the Virtual Machine image name that was previously created using Packer (see chapter "Virtual Machine Image") and also inject the custom data file which comprises the cloud-init configuration (see chapter "Starting Application on Boot").
 
-**Testing the Scale set**. 
+### Testing the Scale set 
+
+Testing the Scale set and later the Scale set with running the app with azure-table-storage mode hitting the Storage account Tables turned out to be a real pain in the ass. More about it in this and the next chapter.
 
 When I had finalized the VM image configurations and successfully tested the image by creating a test virtual machine using that image (using Azure command line). I uncommented the Scale set module in the env-def.tf, supplied the name of the VM image in dev.tf and the cloud-init file for the single-node test version of the server, and ran 'terraform init' and 'terraform apply'. When the deployment was ready I checked the dns name of the load balancer of the new scale set and curled the API - the LB swiftly replied to my request. Just to make sure the single-node version worked just fine I ran my poor man's Robot framework simulator  ./call-all-ip-port.sh LB-DNS 3045 => worked just fine. So, at least the basic setup was working nicely. 
 
 Next I commented the scale set and ran terraform apply to remove the scale set. Then I changed the Azure table storage cloud init version (not in the Github since the Storage account connection string is in that file (in real world project the connection string would be stored in the Azure Key Vault, of course) to be injected with the image when creating the new virtual machine (i.e. start the Simple Server with Azure table storage mode) and ran terraform init and terraform apply.
 
 Then testing the azure-table-storage version. The curl for /info worked just fine (does not hit the database). But all APIs that hit the database failed. Ok, obviously something wrong with the database connection. :-)   This was actually a good thing since I had to figure out how to get a shh connection to a VM in a Scale set. Then I realized that I don't actually need to go to the scale set vm. I can create a test vm using that image, set the azure-table-storage mode and connection string there and debug the problem regarding the database connection. I did that. I created a test VM, ssh'd inside and curled inside the VM one API that I knew that will hit the database, then checked the logs, then in the Clojure server source code followed the trace to the function that failed and immediately saw the problem: I had hardcoded the table name prefix (since the aks exercise was the only Azure exercise that far). I fixed the issue, build the app, build a new VM image and tried again. 
-
-
  
 BTW. This is actually also an interesting best practice that I didn't realize I have been doing for many years. If you implement a server, implement into the same server two modes: One test mode which has no external dependencies but simulates e.g. database and external connections locally, and one mode for the real thing (real connections to the database...). This way you can test e.g. scaling isolated from the external connections (using the test mode). It's always a lot faster to test things in isolation than to start setting database, db tables, uploading real-look-like test data... before you can test something like scaling which has nothing to do with the database connections.
 
@@ -169,12 +177,15 @@ Actually, this debugging session was a nice exercise. What I learned here:
 - Do not try to debug a VM in a Scale set - create a test VM and debug there.
 
 
-## Load Balancers
+## Load Balancer
+
+The scale-set.tf file defines also the load balancer for the Scale set. You can go to portal and click the public ip entity with the load balancer name - you get the dns that Azure created for that load balancer. You can use that dns to curl the service in port 3045. Load balancer forwards the request to some VM in the Scale set.
 
 
 ## Table Storage Tables
 
-TODO.
+The Tables are created in the terraform "storage-tables" module. I could have created a terraform module to create a Table and then use it four times in the "storage-tables" module but since the tables are small entities I just added them here inline.
+
 
 
 # Virtual Machine Image
