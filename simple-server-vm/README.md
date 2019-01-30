@@ -1,4 +1,4 @@
-# Simple Server Azure VM / Scale set Demonstration  <!-- omit in toc -->
+# Simple Server Azure VM / Scale Set Demonstration  <!-- omit in toc -->
 
 # Table of Contents  <!-- omit in toc -->
 - [Introduction](#introduction)
