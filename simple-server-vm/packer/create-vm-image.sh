@@ -31,7 +31,7 @@ fi
 
 MY_SS_VM_PREFIX=$1
 MY_SS_VM_RG_NAME=$2
-MY_SS_VM_IMAGE_NAME="${MY_SS_VM_PREFIX}-vm"
+MY_SS_VM_IMAGE_NAME="${MY_SS_VM_PREFIX}-vm-image"
 
 
 echo "Using prefix: $MY_SS_VM_PREFIX"

@@ -20,7 +20,10 @@ I'll finalize the documentation once the actual exercise is done.
 
 # Introduction
 
-There is a blog post regarding this project: [TODO](https://medium.com/@kari.marttila/TODO).
+I don't recommend reading this README.md file as is since this Azure VM and Scale set exercise was just a quick personal exercise to explore how it is to create a custom Azure Linux VM image and use it in an Azure Scale set. I have documented all kinds of stuff (also failed experiments) in this README.md file and it is not therefore that readable. If you want to read a more reader friendly version there are two blog posts regarding this project:
+ 
+- [Creating Azure Custom Linux VM Image](https://medium.com/@kari.marttila/creating-azure-custom-linux-vm-image-46f2a15c95bc).
+- [Creating Azure Scale Set](TODO)
 
 I created this Simple Server Azure VM / Scaleset to study how to create vnet, subnets and related security (security groups), load balancers and how to create a golden image VM and deploy it to this Terraform project Scaleset.
 
@@ -129,6 +132,41 @@ locals {
 
 So, here you should give the Virtual Machine image name that was previously created using Packer (see chapter "Virtual Machine Image") and also inject the custom data file which comprises the cloud-init configuration (see chapter "Starting Application on Boot").
 
+**Testing the Scale set**. 
+
+When I had finalized the VM image configurations and successfully tested the image by creating a test virtual machine using that image (using Azure command line). I uncommented the Scale set module in the env-def.tf, supplied the name of the VM image in dev.tf and the cloud-init file for the single-node test version of the server, and ran 'terraform init' and 'terraform apply'. When the deployment was ready I checked the dns name of the load balancer of the new scale set and curled the API - the LB swiftly replied to my request. Just to make sure the single-node version worked just fine I ran my poor man's Robot framework simulator  ./call-all-ip-port.sh LB-DNS 3045 => worked just fine. So, at least the basic setup was working nicely. 
+
+Next I commented the scale set and ran terraform apply to remove the scale set. Then I changed the Azure table storage cloud init version (not in the Github since the Storage account connection string is in that file (in real world project the connection string would be stored in the Azure Key Vault, of course) to be injected with the image when creating the new virtual machine (i.e. start the Simple Server with Azure table storage mode) and ran terraform init and terraform apply.
+
+Then testing the azure-table-storage version. The curl for /info worked just fine (does not hit the database). But all APIs that hit the database failed. Ok, obviously something wrong with the database connection. :-)   This was actually a good thing since I had to figure out how to get a shh connection to a VM in a Scale set. Then I realized that I don't actually need to go to the scale set vm. I can create a test vm using that image, set the azure-table-storage mode and connection string there and debug the problem regarding the database connection. I did that. I created a test VM, ssh'd inside and curled inside the VM one API that I knew that will hit the database, then checked the logs, then in the Clojure server source code followed the trace to the function that failed and immediately saw the problem: I had hardcoded the table name prefix (since the aks exercise was the only Azure exercise that far). I fixed the issue, build the app, build a new VM image and tried again. 
+
+
+ 
+BTW. This is actually also an interesting best practice that I didn't realize I have been doing for many years. If you implement a server, implement into the same server two modes: One test mode which has no external dependencies but simulates e.g. database and external connections locally, and one mode for the real thing (real connections to the database...). This way you can test e.g. scaling isolated from the external connections (using the test mode). It's always a lot faster to test things in isolation than to start setting database, db tables, uploading real-look-like test data... before you can test something like scaling which has nothing to do with the database connections.
+
+BTW. I really love terraform in testing situations like this. When you have a modular terraform configuration it is pretty easy to uncomment certain terraform module and delete all resources in that module, and make a new infra deployment with different parameters to test something (like above the server mode which is given by the cloud-init configuration).
+
+BTW. It's pretty easy to change image using terraform. First set the scale set capacity to 0 - this effectively deletes the old virtual machines. Then just set the new image name and new capacity in terraform configuration, init + apply and you get the the virtual machines up using the new image.
+
+## Storage Account
+
+The storage account hosts the Simple Server database - 4 storage tables.
+
+After that prefix fix I still couldn't connect from the VM to the table storage account with the right connection string. I first thought that I need to give some access right for the VM to access the storage account, see more details in Microsoft documentation: [Tutorial: Use a Windows VM system-assigned managed identity to access Azure Storage](https://docs.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/tutorial-vm-windows-access-storage) and [Configure managed identities for Azure resources on a VM using the Azure portal](https://docs.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/qs-configure-portal-windows-vm), [Configure Azure Storage firewalls and virtual networks](https://docs.microsoft.com/en-us/azure/storage/common/storage-network-security).
+
+But before hassling too much I wanted to make a test. I copied my Python data-importer to that VM machine and tried to use it for importing some test data to productgroups table - ran smoothly with the same connection string. Ok, now I verified that I actually don't need to make any special role for VM and give that role access right to the storage account. (But actually in a real production system you should not expose the storage account to internet but only to your VMs, e.g. with some NSG and this kind of role based access). So, the issue was somewhere in the Clojure application. I had verified of course that the Clojure app works with that connection string in my local workstation. 
+
+Ok, now I knew that there is nothing wrong with the VM itself to connect to the storage account. Next I tarred my whole app development env, copied to that VM and untarred it there and ran the unit tests - it worked: wtf? The same application worked in one situation (running unit tests) but not in another (running as server). So, there is something different between those situations. Debugging is often detective work like this, you have certain hypothesis and you need to logically and systematically make your problem space smaller and smaller until you have found the culprit. 
+
+Ok, I finally found the culprit. I had forgotten the new 'AZURE_TABLE_PREFIX' environment variable that I added to make the Azure version of Simple Server generic (to run in any environment and using environment prefix that is found also in the tables). I ran my ./call-all-ip-port.sh using this test server and everything worked just fine. 
+
+Next I dropped scale set capacity again to zero to terminate the old VMs in the scale set, then raised the capacity to 2 again to create two new VMs, this time using the new cloud-init script for the azure-table-storage version in which I fixed the missing AZURE_TABLE_PREFIX environment variable. Again I ran my ./call-all-ip-port.sh using the load balancer of this scale set and everything worked fine: Yihaa, finally! (I even changed the price of "Once Upon a Time in the West" to $9999 using the Storage Account Storage Explorer (in Portal, in preview when writing this) so that I would be certain that the app is hitting the Tables in the Storage account and not using the internal DB). 
+
+Actually, this debugging session was a nice exercise. What I learned here:
+
+- Always implement good logging to your servers.
+- Python is a handy tool to test connections (you quickly implement a small application that should access resources...).
+- Do not try to debug a VM in a Scale set - create a test VM and debug there.
 
 
 ## Load Balancers

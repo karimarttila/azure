@@ -5,8 +5,10 @@ MY_APP_FILE=/my-app/my-start-server.sh
 printf "#!/bin/bash\n\n" >> $MY_APP_FILE
 printf "export SS_ENV=\"single-node\"\n" >> $MY_APP_FILE
 printf "export MY_ENV=\"dev\"\n" >> $MY_APP_FILE
-printf "export SIMPLESERVER_CONFIG_FILE=\"resources/simpleserver.properties\"\n\n" >> $MY_APP_FILE
-printf "java -jar app.jar\n\n" >> $MY_APP_FILE
+printf "export SIMPLESERVER_CONFIG_FILE=\"resources/simpleserver.properties\"\n" >> $MY_APP_FILE
+printf "# NOTE: You can debug in production by switching dev/prod logging configuration.\n\n" >> $MY_APP_FILE
+printf "java -Dlogback.configurationFile=resources/logconfig/dev/logback.xml -jar app.jar\n\n" >> $MY_APP_FILE
+
 sudo chmod u+x $MY_APP_FILE
 
 # Create the simple server user to run the application.

@@ -26,15 +26,15 @@ locals {
   vm_ssh_public_key_file = "/mnt/edata/aw/kari/github/azure/simple-server-vm/personal-info/vm_id_rsa.pub"
   application_port       = "3045"
   # NOTE: The custom image must have been created by Packer previously.
-  scaleset_image_name    = "karissvmdemo-v1-image-vm"
+  scaleset_image_name    = "karissvmdemo5-vm-image"
   scaleset_capacity      = "2"
   # This way you can inject the environment variables regarding Simple Server mode
   # at the point we actually create the VM.
-  scaleset_vm_custom_data_file = "/mnt/edata/aw/kari/github/azure/simple-server-vm/cloud-init-set-env-mode-single-node.sh"
+  #scaleset_vm_custom_data_file = "/mnt/edata/aw/kari/github/azure/simple-server-vm/packer/cloud-init-set-env-mode-single-node.sh"
   # Let's keep the cloud init file for the azure table storage version out of the
   # Git repo since we have the storage account connection string there.
   # In real production system we should store the connection string to key vault, of course.
-  #scaleset_vm_custom_data_file = "/mnt/edata/aw/kari/github/azure/simple-server-vm/personal-info/cloud-init-set-env-mode-azure-table-storage.sh"
+  scaleset_vm_custom_data_file = "/mnt/edata/aw/kari/github/azure/simple-server-vm/personal-info/cloud-init-set-env-mode-azure-table-storage.sh"
 }
 
 

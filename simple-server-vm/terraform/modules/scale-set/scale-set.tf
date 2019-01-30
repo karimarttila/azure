@@ -125,6 +125,12 @@ resource "azurerm_virtual_machine_scale_set" "scaleset" {
       subnet_id    = "${var.subnet_id}"
       load_balancer_backend_address_pool_ids = ["${azurerm_lb_backend_address_pool.scaleset_lb_backend_pool.id}"]
       primary = true
+      # This section is just for debugging purposes if you need to access the VM using ssh.
+//      public_ip_address_configuration {
+//        domain_name_label = ""
+//        idle_timeout = 0
+//        name = ""
+//      }
     }
   }
 
