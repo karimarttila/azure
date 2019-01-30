@@ -57,5 +57,6 @@ module "scale-set" {
   vm_ssh_public_key_file       = "${var.vm_ssh_public_key_file}"
   scaleset_capacity            = "${var.scaleset_capacity}"
   scaleset_vm_custom_data_file = "${var.scaleset_vm_custom_data_file}"
+  image_rg_name                = "${var.image_rg_name}"
 }
 

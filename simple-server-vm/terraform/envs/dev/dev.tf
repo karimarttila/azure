@@ -26,7 +26,8 @@ locals {
   vm_ssh_public_key_file = "/mnt/edata/aw/kari/github/azure/simple-server-vm/personal-info/vm_id_rsa.pub"
   application_port       = "3045"
   # NOTE: The custom image must have been created by Packer previously.
-  scaleset_image_name    = "karissvmdemo5-vm-image"
+  scaleset_image_name    = "karivmdemo1-vm-image"
+  image_rg_name          = "kari-ss-images-rg"
   scaleset_capacity      = "2"
   # This way you can inject the environment variables regarding Simple Server mode
   # at the point we actually create the VM.
@@ -54,6 +55,6 @@ module "env-def" {
   application_port                  = "${local.application_port}"
   scaleset_capacity                 = "${local.scaleset_capacity}"
   scaleset_vm_custom_data_file      = "${local.scaleset_vm_custom_data_file}"
-
+  image_rg_name                     = "${local.image_rg_name}"
 }
 

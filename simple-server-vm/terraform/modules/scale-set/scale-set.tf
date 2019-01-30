@@ -65,7 +65,7 @@ resource "azurerm_lb_rule" "scaleset_lb_nat_rule" {
 # NOTE: We use data since the image building is not part of Terraform but has been done previously using Packer.
 data "azurerm_image" "scaleset_image_reference" {
   name                = "${var.scaleset_image_name}"
-  resource_group_name = "${var.rg_name}"
+  resource_group_name = "${var.image_rg_name}"
 }
 
 

@@ -9,3 +9,4 @@ variable "application_port" {}
 variable "scaleset_image_name" {}
 variable "scaleset_capacity" {}
 variable "scaleset_vm_custom_data_file" {}
+variable "image_rg_name" {}

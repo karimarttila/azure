@@ -8,3 +8,4 @@ variable "scaleset_image_name" {}
 variable "vm_ssh_public_key_file" {}
 variable "scaleset_capacity" {}
 variable "scaleset_vm_custom_data_file" {}
+variable "image_rg_name" {}
