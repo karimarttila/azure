@@ -316,7 +316,7 @@ Let's next try this server in the Azure Scale set.
 
 ## Instructions for the First Time
 
-You should run the terraform in two parts: everything else but scale-set first. The reason is that you need to inject the storage account's access key to the scale set (in dev.tf.) So, provide these parameters:
+You should run the terraform in two parts: everything else but scale-set first. The reason is that you need to inject the storage account's access key to the scale set (in cloud-init script.) So, provide these parameters:
 
 - In dev.tf: Image name and image resource group.
 - In cloud-init file for azure-table-storage (in my personal-info folder): Account connection string.
