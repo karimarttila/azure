@@ -118,7 +118,7 @@ az ad sp create-for-rbac --query "{ client_id: appId, client_secret: password, t
 #  "tenant_id": "ccccccccccccccccc"
 ```
 
-You get the service principal credentials, copy-paste them to your ~/.azure/<environmen-settings.sh> to be sourced later.
+You get the service principal credentials, copy-paste them to your ~/.azure/<environment-settings.sh> to be sourced later.
 
 
 ## Creating the Image

@@ -12,21 +12,22 @@ provider "azurerm" {
 
 terraform {
   backend "azurerm" {
-    storage_account_name  = "devkarissvm2terrastorage"
-    container_name        = "dev-kari-ss-vm2-terraform-container"
+    storage_account_name  = "devkarissvmterrastorage"
+    container_name        = "dev-kari-ss-vm-terraform-container"
     key                   = "dev-terraform.tfstate"
   }
 }
 
 # These values are per environment.
 locals {
-  my_prefix              = "karissvmdemo3"
+  my_prefix              = "karissvmdemo1"
   my_env                 = "dev"
   my_location            = "westeurope"
   vm_ssh_public_key_file = "/mnt/edata/aw/kari/github/azure/simple-server-vm/personal-info/vm_id_rsa.pub"
   application_port       = "3045"
   # NOTE: The custom image must have been created by Packer previously.
   scaleset_image_name    = "karivmdemo1-vm-image"
+  # Let's keep the image in different resource group than the actual Scale set infra, so images preserve if we destroy Scale set infra.
   image_rg_name          = "kari-ss-images-rg"
   scaleset_capacity      = "2"
   # This way you can inject the environment variables regarding Simple Server mode
