@@ -8,9 +8,9 @@ if [ $# -ne 4 ]
 then
   echo "Usage: ./create-azure-storage-account.sh <location> <res-group-name> <storage-account-name> <container-name>"
   echo "NOTE: Use the following azure cli commands to check the right account and to login to az first:"
+  echo "  az login                                          => Login to azure cli."  
   echo "  az account list --output table                    => Check which Azure accounts you have."
-  echo "  az account set -s \"<your-azure-account-name>\"     => Set the right azure account."
-  echo "  az login                                          => Login to azure cli."
+  echo "  az account set -s \"<your-azure-account-name>\"   => Set the right azure account."
   exit 1
 fi
 
