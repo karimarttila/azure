@@ -23,3 +23,5 @@ personal-info/
 # SSH files.
 .ssh/
 
+personal/
+
